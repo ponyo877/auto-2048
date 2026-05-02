@@ -265,7 +265,7 @@ static EpiResult train_episode(std::mt19937& rng, float alpha) {
     return { score, max_tile(board), moves };
 }
 
-/* ===== weight save in our .w format ===== */
+/* ===== weight save / load in our .w format ===== */
 static const u32 SIGNATURES[FEATURE_COUNT] = {0x012345, 0x456789, 0x012456, 0x45689a};
 
 static void save_weights(const char* path) {
@@ -284,18 +284,49 @@ static void save_weights(const char* path) {
     }
 }
 
+static bool load_weights(const char* path) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in) return false;
+    u8 wrap; in.read((char*)&wrap, 1);
+    u32 num; in.read((char*)&num, 4);
+    if (wrap != 0 || num != FEATURE_COUNT) return false;
+    for (u32 i = 0; i < num; i++) {
+        u8 code; in.read((char*)&code, 1);
+        u32 sign; in.read((char*)&sign, 4);
+        u16 z; in.read((char*)&z, 2); in.read((char*)&z, 2);
+        u16 blkz; in.read((char*)&blkz, 2);
+        u64 length; in.read((char*)&length, 8);
+        if (blkz != 4 || length != PATTERN_SIZE) return false;
+        in.read((char*)WEIGHTS[i].data(), length * sizeof(float));
+        u16 term; in.read((char*)&term, 2);
+        /* coherence extras: skip */
+        while (term != 0) {
+            u64 xlen; in.read((char*)&xlen, 8);
+            in.seekg((std::streamoff)(xlen * term), std::ios::cur);
+            in.read((char*)&term, 2);
+        }
+    }
+    return (bool)in;
+}
+
 int main(int argc, char** argv) {
     int episodes = (argc > 1) ? std::atoi(argv[1]) : 100000;
     float alpha  = (argc > 2) ? (float)std::atof(argv[2]) : 0.0025f;
     const char* out_path = (argc > 3) ? argv[3] : "public/weights/4x6patt.trained.w";
+    const char* in_path  = (argc > 4) ? argv[4] : "";
 
     std::printf("4x6patt TD(0) trainer\n");
-    std::printf("episodes=%d alpha=%.4f out=%s\n", episodes, alpha, out_path);
+    std::printf("episodes=%d alpha=%.4f out=%s in=%s\n", episodes, alpha, out_path, in_path);
 
     build_row_lut();
     build_iso_table();
     for (int i = 0; i < FEATURE_COUNT; i++) {
         WEIGHTS[i].assign(PATTERN_SIZE, 0.0f);
+    }
+    if (in_path[0] && load_weights(in_path)) {
+        std::printf("loaded existing weights from %s\n", in_path);
+    } else if (in_path[0]) {
+        std::printf("WARNING: failed to load %s, starting from zero\n", in_path);
     }
 
     std::mt19937 rng(42);
