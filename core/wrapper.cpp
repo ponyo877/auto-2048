@@ -431,11 +431,51 @@ static float snake_score(u64 b) {
     return best;
 }
 
+/* Tier 5: bonus when max tile sits in a corner — the canonical "anchor"
+ * that keeps the snake from collapsing. Edge placement also scores partial
+ * credit because losing the corner mid-game is sometimes recoverable. */
+static float corner_anchor(u64 b) {
+    int max_v = 0; int max_pos = -1;
+    for (int i = 0; i < 16; i++) {
+        int t = (int)get_tile(b, i);
+        if (t > max_v) { max_v = t; max_pos = i; }
+    }
+    if (max_v == 0) return 0.0f;
+    static const bool IS_CORNER[16] = {
+        1,0,0,1,
+        0,0,0,0,
+        0,0,0,0,
+        1,0,0,1,
+    };
+    static const bool IS_EDGE[16] = {
+        0,1,1,0,
+        1,0,0,1,
+        1,0,0,1,
+        0,1,1,0,
+    };
+    float multiplier = (1u << max_v);  /* 2^logvalue, the actual tile face value */
+    if (IS_CORNER[max_pos]) return 4.0f * multiplier;
+    if (IS_EDGE[max_pos]) return 1.0f * multiplier;
+    return -2.0f * multiplier;          /* in interior — penalised */
+}
+
+/* Tier 5: empties matter exponentially. With <=3 empties a single bad spawn
+ * can lock the board, so the slope between 0 and 4 must be steep. */
+static float empties_score(u64 b) {
+    int n = count_empties(b);
+    /* table chosen to penalise [0..3] heavily, plateau above */
+    static const float TABLE[17] = {
+        -10000, -2000, -500, -100, 0, 50, 100, 150, 200, 240, 270, 290, 300, 305, 308, 310, 312
+    };
+    return TABLE[n];
+}
+
 static float heuristic(u64 b) {
-    /* Snake dominates the magnitude; auxiliary terms break ties for smoothness
-     * and game-over avoidance. */
+    /* Snake captures positional value; auxiliary terms guard against
+     * board saturation and loss of the corner anchor. */
     return 1.0f * snake_score(b)
-         + 100.0f * (float)count_empties(b)
+         + 1.0f * empties_score(b)
+         + 1.0f * corner_anchor(b)
          + 1.0f * smoothness(b)
          + 5.0f * monotonicity(b);
 }
