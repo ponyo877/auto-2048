@@ -28,7 +28,7 @@ fi
 
 mkdir -p ../public
 
-EXPORTED_FUNCTIONS='["_solver_init","_solver_load_weights","_solver_step","_solver_evaluate","_solver_evaluate_actions","_solver_simulate_move","_solver_spawn_tile","_solver_dispose","_malloc","_free"]'
+EXPORTED_FUNCTIONS='["_solver_init","_solver_load_weights","_solver_step","_solver_step_budget","_solver_evaluate","_solver_evaluate_actions","_solver_simulate_move","_solver_spawn_tile","_solver_dispose","_malloc","_free"]'
 EXPORTED_RUNTIME='["ccall","cwrap","HEAPU8","HEAPU32","HEAPF32","getValue","setValue"]'
 
 emcc \

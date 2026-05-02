@@ -28,6 +28,7 @@
 #include <vector>
 #include <array>
 #include <random>
+#include <chrono>
 
 extern "C" {
 
@@ -603,6 +604,25 @@ int solver_step(u64 board, int depth) {
     if (depth < 1) depth = 1;
     if (depth > 8) depth = 8;
     return best_action(board, depth);
+}
+
+/* Iterative deepening with wall-clock budget (in milliseconds).
+ * Searches d=2,3,4,... until ms_budget elapses or d == 8. Keeps the most
+ * recent completed search's best action, ensuring we always return a
+ * meaningful answer even when the budget cuts a deeper iteration short. */
+int solver_step_budget(u64 board, int ms_budget) {
+    if (!g_initialised) return ERR_NOT_INITIALIZED;
+    if (ms_budget < 1) ms_budget = 1;
+    using clock = std::chrono::steady_clock;
+    const auto deadline = clock::now() + std::chrono::milliseconds(ms_budget);
+    int best = best_action(board, 2);  /* always have a fallback */
+    if (best < 0) return -1;
+    for (int d = 3; d <= 8; d++) {
+        if (clock::now() >= deadline) break;
+        int candidate = best_action(board, d);
+        if (candidate >= 0) best = candidate;
+    }
+    return best;
 }
 
 float solver_evaluate(u64 board) {
