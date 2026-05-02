@@ -94,8 +94,9 @@ export function App() {
       {!solver && !err && <div className="notice">Loading solver…</div>}
       {err && <div className="notice">Error: {err}</div>}
       <div className="notice">
-        TD(0) 学習済 4x6patt N-Tuple Network (2M episode) + depth=4 expectimax。
-        <br/>実測:2048 100%, 4096 100%, 8192 80%, 16384 10% (depth=4, 10 ゲーム)。
+        TD(0) 学習済 4x6patt N-Tuple Network (3M episode) + depth=4 expectimax。
+        <br/>実測 (depth=4, 10 ゲーム):2048 100%, 4096 100%, 8192 80%, 16384 時々。
+        <br/>depth=5 にすると更に向上(対応:Controls の depth セレクタ)。
       </div>
     </div>
   );
