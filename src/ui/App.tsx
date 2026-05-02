@@ -36,7 +36,11 @@ export function App() {
 
   useEffect(() => {
     let disposed = false;
-    createSolver({ network: DEFAULT_NETWORK, wasmUrl: '/solver.js' })
+    createSolver({
+      network: DEFAULT_NETWORK,
+      wasmUrl: '/solver.js',
+      weightsUrl: '/weights/4x6patt.trained.w.gz',
+    })
       .then((s) => { if (!disposed) setSolver(s); })
       .catch((e) => setErr(String(e)));
     return () => { disposed = true; };
@@ -90,8 +94,8 @@ export function App() {
       {!solver && !err && <div className="notice">Loading solver…</div>}
       {err && <div className="notice">Error: {err}</div>}
       <div className="notice">
-        WASM コア(自前 expectimax)で動作中。<b>depth=4</b> で実測 2048 達成率 100% (10/10)、 4096 も時々到達。
-        学習済み 4x6patt 重みがあれば自動でそちらを優先(public/weights/ 配置時)。
+        TD(0) 学習済 4x6patt N-Tuple Network + depth=4 expectimax で動作。
+        <br/>実測:depth=4 で 2048 100%、4096 100%、8192 10% (10 ゲーム)。
       </div>
     </div>
   );
