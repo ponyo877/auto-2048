@@ -43,9 +43,19 @@ function bind(mod: EmModule): CoreApi {
 async function fetchWeights(url: string): Promise<Uint8Array> {
   const res = await fetch(url);
   if (!res.ok) throw new SolverError('fetch', `weights fetch ${res.status}`);
-  if (!url.endsWith('.gz')) return new Uint8Array(await res.arrayBuffer());
-  const stream = res.body!.pipeThrough(new DecompressionStream('gzip'));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  /* Vite preview (and many CDNs) auto-set Content-Encoding: gzip for .gz
+   * files, in which case the browser decompresses transparently and we
+   * receive raw bytes here. Detect the gzip magic to decide whether we
+   * need to decompress ourselves. */
+  const buf = new Uint8Array(await res.arrayBuffer());
+  if (buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b) {
+    const ds = new DecompressionStream('gzip');
+    const writer = ds.writable.getWriter();
+    writer.write(buf);
+    writer.close();
+    return new Uint8Array(await new Response(ds.readable).arrayBuffer());
+  }
+  return buf;
 }
 
 async function pushWeights(api: CoreApi, mod: EmModule, url: string): Promise<void> {

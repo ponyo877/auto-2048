@@ -22,11 +22,11 @@ export function Controls(p: Props) {
       <label>
         speed
         <input
-          type="range" min={10} max={1000} step={10}
+          type="range" min={0} max={1000} step={10}
           value={p.speed}
           onChange={(e) => p.onSpeedChange(Number(e.target.value))}
         />
-        <span>{p.speed}ms</span>
+        <span>{p.speed === 0 ? 'max' : `${p.speed}ms`}</span>
       </label>
       <label>
         depth

@@ -25,8 +25,8 @@ export function App() {
   const [score, setScore] = useState(0);
   const [moves, setMoves] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(50);
-  const [depth, setDepth] = useState(4);
+  const [speed, setSpeed] = useState(0);
+  const [depth, setDepth] = useState(3);
   const [solver, setSolver] = useState<Solver | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const boardRef = useRef(board);
@@ -94,9 +94,9 @@ export function App() {
       {!solver && !err && <div className="notice">Loading solver…</div>}
       {err && <div className="notice">Error: {err}</div>}
       <div className="notice">
-        TD(0) 学習済 4x6patt N-Tuple Network (3M episode) + depth=4 expectimax。
-        <br/>実測 (depth=4, 10 ゲーム):2048 100%, 4096 100%, 8192 80%, 16384 時々。
-        <br/>depth=5 にすると更に向上(対応:Controls の depth セレクタ)。
+        TD(0) 学習済 4x6patt N-Tuple Network (3M episode) + expectimax。
+        <br/>ブラウザ既定 depth=3(1 ゲーム 1〜2 分):2048 ほぼ確実、4096 高頻度。
+        <br/>depth セレクタを 4/5 にすると更に高 MAX(計算時間が比例して長くなる)。
       </div>
     </div>
   );
