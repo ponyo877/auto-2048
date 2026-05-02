@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import type { Action, Solver } from '@/solver';
 
 export interface LoopHandlers {
@@ -54,41 +54,40 @@ function scheduleNext(delayMs: number, fn: () => void): () => void {
 }
 
 export function useGameLoop({ solver, isPlaying, speed, getBoard, getDepth, onAdvance, onGameOver, onError }: Args) {
-  const cancelledRef = useRef(false);
-
   useEffect(() => {
     if (!isPlaying || !solver) return;
-    cancelledRef.current = false;
+    /* CRITICAL: cancellation flag MUST be local to this effect run, not a
+     * shared useRef. If we share, a stale tick from a previous run sees the
+     * NEW run's cancelled=false and keeps firing — two loops drain the worker
+     * concurrently, each updating the same React state, producing the
+     * "stuck" behaviour where the game accumulates moves indefinitely. */
+    let cancelled = false;
     let cancelTimer: (() => void) | undefined;
-    /* Loop-local copy of the board: the React commit may not have happened
-     * yet between ticks (especially with speed=0 + MessageChannel), so reading
-     * via getBoard() each tick can return a stale value. We initialise once
-     * from React state, then advance using the simulator's own next state. */
+    /* Loop-local copy of the board so MessageChannel ticks (which can fire
+     * faster than React commits) don't read stale state. */
     let liveBoard = getBoard();
-    /* one-shot seed from page-launch time so each Play session uses a
-     * different but reproducible spawn sequence */
     const baseSeed = ((Date.now() ^ Math.floor(Math.random() * 0x7fffffff)) | 0) || 1;
     let mvIdx = 0;
 
     const tick = async () => {
-      if (cancelledRef.current) return;
+      if (cancelled) return;
       try {
         const seed = (baseSeed * 37 + mvIdx) | 0;
         const result = await runOneStep(solver, liveBoard, getDepth(), seed);
-        if (cancelledRef.current) return;
+        if (cancelled) return;
         if (!result) { onGameOver(); return; }
         liveBoard = result.next;
         mvIdx++;
         onAdvance(result.next, result.action, result.reward);
         cancelTimer = scheduleNext(speed, tick);
       } catch (err) {
-        if (!cancelledRef.current) onError(err);
+        if (!cancelled) onError(err);
       }
     };
 
     cancelTimer = scheduleNext(speed, tick);
     return () => {
-      cancelledRef.current = true;
+      cancelled = true;
       if (cancelTimer) cancelTimer();
     };
   }, [solver, isPlaying, speed, getBoard, getDepth, onAdvance, onGameOver, onError]);
