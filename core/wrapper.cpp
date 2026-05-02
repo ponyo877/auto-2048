@@ -455,31 +455,36 @@ static float static_eval(u64 b) {
     return g_weights_loaded ? evaluate_ntuple(b) : heuristic(b);
 }
 
-/* === expectimax ========================================================== */
-/* maxnode_after_move evaluates a board (post-spawn). Depth counts remaining
- * (chance, max) round-trips; depth=0 stops at the heuristic.
- *
- * Performance: at depth=3 with ~10 empties per chance node, branching is
- * 4 * 20 * 4 * 20 * 4 ~= 16k leaf evaluations per move. Fast in C++.
+/* === expectimax with probability cutoff =================================
+ * Each chance branch carries a cumulative probability `prob`. Branches whose
+ * cumulative probability falls below PROB_CUTOFF are evaluated with the
+ * static heuristic instead of recursing. This budgets compute toward the
+ * branches that actually move the expected value, allowing the same wall
+ * clock to cover ~+1 to +2 deeper plies than a fixed-depth full expansion.
  */
-static float expectimax_max(u64 b, int depth);
+static constexpr float PROB_CUTOFF = 1e-3f;
 
-static float expectimax_chance(u64 after, int depth) {
-    if (depth <= 0) return static_eval(after);
+static float expectimax_max(u64 b, int depth, float prob);
+
+static float expectimax_chance(u64 after, int depth, float prob) {
+    if (depth <= 0 || prob < PROB_CUTOFF) return static_eval(after);
     int empties[16]; int n = 0;
     for (int i = 0; i < 16; i++) if (get_tile(after, i) == 0) empties[n++] = i;
     if (n == 0) return static_eval(after);
+    const float each = 1.0f / (float)n;
+    const float p2 = prob * 0.9f * each;
+    const float p4 = prob * 0.1f * each;
     float total = 0.0f;
     for (int i = 0; i < n; i++) {
         u64 b2 = set_tile(after, empties[i], 1u);
         u64 b4 = set_tile(after, empties[i], 2u);
-        total += 0.9f * expectimax_max(b2, depth);
-        total += 0.1f * expectimax_max(b4, depth);
+        total += 0.9f * expectimax_max(b2, depth, p2);
+        total += 0.1f * expectimax_max(b4, depth, p4);
     }
-    return total / (float)n;
+    return total * each;
 }
 
-static float expectimax_max(u64 b, int depth) {
+static float expectimax_max(u64 b, int depth, float prob) {
     if (depth <= 0) return static_eval(b);
     float best = -1e30f;
     bool any_legal = false;
@@ -488,7 +493,7 @@ static float expectimax_max(u64 b, int depth) {
         u64 after = simulate(b, a, &r);
         if (after == b) continue;
         any_legal = true;
-        float v = (float)r + expectimax_chance(after, depth - 1);
+        float v = (float)r + expectimax_chance(after, depth - 1, prob);
         if (v > best) best = v;
     }
     return any_legal ? best : static_eval(b);
@@ -500,7 +505,7 @@ static ActionScore score_action(u64 b, int action, int depth) {
     u32 r = 0;
     u64 after = simulate(b, action, &r);
     if (after == b) return { action, -1e30f, false };
-    float v = (float)r + expectimax_chance(after, depth - 1);
+    float v = (float)r + expectimax_chance(after, depth - 1, 1.0f);
     return { action, v, true };
 }
 
@@ -546,7 +551,7 @@ int solver_load_weights(const u8* data, size_t size) {
 int solver_step(u64 board, int depth) {
     if (!g_initialised) return ERR_NOT_INITIALIZED;
     if (depth < 1) depth = 1;
-    if (depth > 6) depth = 6;
+    if (depth > 8) depth = 8;
     return best_action(board, depth);
 }
 
