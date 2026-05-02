@@ -371,11 +371,72 @@ static float monotonicity(u64 b) {
     return total;
 }
 
+/* === Snake gradient heuristic =========================================== */
+/* For each of 8 corner orientations, assign cells exponentially decreasing
+ * weights along a serpentine path starting from that corner. Score is
+ * sum(weight[i] * 2^logvalue[i]) and the heuristic returns the best of 8.
+ * This rewards keeping the max tile in a corner with a clean monotonic
+ * descent — the canonical strong static evaluator for 2048.
+ */
+static float SNAKE_W[8][16];
+static bool g_snake_built = false;
+
+/* Snake order from top-left corner: 0..15 enumerates positions in priority
+ * (highest tile -> position 0 in the serpentine). Other corners are derived
+ * by isomorphism transforms (4 rotations × 2 mirror = 8). */
+static const int SNAKE_ORDER_TL[16] = {
+    0, 1, 2, 3,
+    7, 6, 5, 4,
+    8, 9,10,11,
+   15,14,13,12,
+};
+
+static void build_snake_weights() {
+    constexpr float R = 4.0f;  /* tuned: ovolve-style ratio */
+    /* Base orientation: top-left snake. Higher rank = higher weight. */
+    float w_tl[16];
+    for (int i = 0; i < 16; i++) {
+        int rank = 15 - SNAKE_ORDER_TL[i];   /* position 0 in path -> rank 15 (max) */
+        float v = 1.0f;
+        for (int j = 0; j < rank; j++) v *= R;
+        w_tl[i] = v;
+    }
+    /* Spread to all 8 isomorphisms via the same apply_iso transform used by
+     * ISO_POS (so we benefit from the existing tested mapping). */
+    for (int o = 0; o < 8; o++) {
+        for (int p = 0; p < 16; p++) {
+            int x, y;
+            apply_iso(o, p, x, y);
+            SNAKE_W[o][y * 4 + x] = w_tl[p];
+        }
+    }
+    g_snake_built = true;
+}
+
+static float snake_score(u64 b) {
+    if (!g_snake_built) build_snake_weights();
+    /* Pre-extract tile values to avoid 8x get_tile overhead */
+    float vals[16];
+    for (int i = 0; i < 16; i++) {
+        int t = (int)get_tile(b, i);
+        vals[i] = (t == 0) ? 0.0f : (float)(1u << t);
+    }
+    float best = -1e30f;
+    for (int o = 0; o < 8; o++) {
+        float s = 0.0f;
+        for (int i = 0; i < 16; i++) s += SNAKE_W[o][i] * vals[i];
+        if (s > best) best = s;
+    }
+    return best;
+}
+
 static float heuristic(u64 b) {
-    return 2.7f * (float)count_empties(b)
-         + 0.1f * smoothness(b)
-         + 1.0f * monotonicity(b)
-         + 1.0f * (float)max_tile_log(b);
+    /* Snake dominates the magnitude; auxiliary terms break ties for smoothness
+     * and game-over avoidance. */
+    return 1.0f * snake_score(b)
+         + 100.0f * (float)count_empties(b)
+         + 1.0f * smoothness(b)
+         + 5.0f * monotonicity(b);
 }
 
 /* === N-Tuple V (when weights loaded) === */
