@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/ponyo877/Documents/workspace/github.com/ponyo877/auto-2048/.claude/hooks/check-complexity.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

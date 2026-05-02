@@ -1,0 +1,27 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.vscode/
+.idea/
+tsconfig.tsbuildinfo
+vite.config.js
+src/**/*.js
+src/**/*.d.ts
+
+# emcc outputs (re-generated)
+public/solver.js
+public/solver.wasm
+public/solver.worker.js
+
+# weight artifacts (large, fetched separately)
+public/weights/*.w
+public/weights/*.w.gz
+public/weights/*.w.xz
+
+# native build artifacts
+core/build/
+tools/build/
+
+# user-supplied reference / scratchpad
+design/

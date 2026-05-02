@@ -1,0 +1,32 @@
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #faf8ef;
+  color: #776e65;
+}
+body { margin: 0; padding: 0; }
+.app { max-width: 520px; margin: 24px auto; padding: 16px; }
+.app h1 { font-size: 28px; margin: 0 0 8px; }
+.app .sub { color: #888; font-size: 13px; margin-bottom: 16px; }
+.board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #bbada0; padding: 8px; border-radius: 8px; }
+.tile { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 24px; border-radius: 4px; background: #cdc1b4; color: #776e65; }
+.tile.t-2    { background: #eee4da; }
+.tile.t-4    { background: #ede0c8; }
+.tile.t-8    { background: #f2b179; color: #f9f6f2; }
+.tile.t-16   { background: #f59563; color: #f9f6f2; }
+.tile.t-32   { background: #f67c5f; color: #f9f6f2; }
+.tile.t-64   { background: #f65e3b; color: #f9f6f2; }
+.tile.t-128  { background: #edcf72; color: #f9f6f2; font-size: 22px; }
+.tile.t-256  { background: #edcc61; color: #f9f6f2; font-size: 22px; }
+.tile.t-512  { background: #edc850; color: #f9f6f2; font-size: 22px; }
+.tile.t-1024 { background: #edc53f; color: #f9f6f2; font-size: 18px; }
+.tile.t-2048 { background: #edc22e; color: #f9f6f2; font-size: 18px; }
+.tile.t-big  { background: #3c3a32; color: #f9f6f2; font-size: 18px; }
+.stats { display: flex; gap: 12px; margin: 12px 0; }
+.stat { background: #bbada0; color: #f9f6f2; padding: 6px 12px; border-radius: 4px; font-size: 13px; }
+.stat .v { font-size: 18px; font-weight: bold; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; }
+.controls button { padding: 8px 14px; background: #8f7a66; color: #f9f6f2; border: 0; border-radius: 4px; font-weight: bold; cursor: pointer; }
+.controls button:disabled { opacity: 0.5; cursor: not-allowed; }
+.controls label { font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.controls input[type="range"], .controls select { vertical-align: middle; }
+.notice { background: #fff3cd; border: 1px solid #ffeeba; padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-top: 12px; }

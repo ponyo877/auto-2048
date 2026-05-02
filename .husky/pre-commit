@@ -1,0 +1,3 @@
+#!/usr/bin/env sh
+# Block commits whose staged TS/JS files violate cognitive-complexity <= 20.
+npx lint-staged
