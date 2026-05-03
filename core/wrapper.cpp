@@ -211,6 +211,10 @@ static constexpr int FEATURE_COUNT = 4;
 static constexpr int TILES_PER_PATTERN = 6;
 static constexpr u64 PATTERN_SIZE = 1ULL << (4 * TILES_PER_PATTERN);  /* 16^6 */
 
+/* Position order: matches TDL2048+'s indexpt<patt...>.
+ *   indexpt<p0,p1,...,p5>(b) = sum_{n=0..5} b.at(p_n) << (n*4)
+ *   so position p0 lands in low nibble, p5 in high. Our pattern_index does
+ *   the same with positions[t] iterated t=0..5. */
 static const int PATTERNS[FEATURE_COUNT][TILES_PER_PATTERN] = {
     {0, 1, 2, 3, 4, 5},
     {4, 5, 6, 7, 8, 9},
@@ -587,12 +591,6 @@ static float expectimax_chance(u64 after, int depth, float prob) {
 
 static float expectimax_max(u64 b, int depth, float prob) {
     if (depth <= 0) return static_eval(b);
-    /* TT probe (only meaningful for depth >= 2; shallow lookups have low reuse) */
-    if (depth >= 2) {
-        u32 h = tt_hash(b);
-        TTEntry e = g_tt[h];
-        if (e.board == b && e.depth >= depth) return e.value;
-    }
     float best = -1e30f;
     bool any_legal = false;
     for (int a = 0; a < 4; a++) {
@@ -603,16 +601,11 @@ static float expectimax_max(u64 b, int depth, float prob) {
         float v = (float)r + expectimax_chance(after, depth - 1, prob);
         if (v > best) best = v;
     }
-    float result = any_legal ? best : static_eval(b);
-    if (depth >= 2) {
-        u32 h = tt_hash(b);
-        TTEntry& e = g_tt[h];
-        /* Replace if our depth >= existing (deeper or equal info wins). */
-        if (e.board == 0 || e.depth <= depth) {
-            e.board = b; e.depth = (u8)depth; e.value = result;
-        }
-    }
-    return result;
+    /* Terminal (game over) value is 0 — no future reward. Using
+     * static_eval here would propagate whatever value the trained V has
+     * learned for unreachable / out-of-distribution boards, which can be
+     * a large positive or negative value and pollutes search. */
+    return any_legal ? best : 0.0f;
 }
 
 struct ActionScore { int action; float value; bool legal; };
@@ -626,9 +619,6 @@ static ActionScore score_action(u64 b, int action, int depth) {
 }
 
 static int best_action(u64 b, int depth) {
-    /* TT is per-move: the prob argument changes each call so cached V values
-     * could carry stale approximation context. Cheap to clear (memset 16MB). */
-    if (depth >= 3) tt_clear();
     ActionScore best = { -1, -1e30f, false };
     for (int a = 0; a < 4; a++) {
         ActionScore s = score_action(b, a, depth);

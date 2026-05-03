@@ -229,8 +229,10 @@ export function App() {
           <div className="card">
             <div className="card-title">How it plays</div>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'var(--ink-soft)' }}>
-              The AI uses <b style={{ color: 'var(--ink)' }}>Expectimax search</b> on a TC-trained 4x6patt N-Tuple Network.
-              Higher levels look <b style={{ color: 'var(--ink)' }}>more moves ahead</b> — slower but smarter.
+              The AI uses <b style={{ color: 'var(--ink)' }}>Expectimax search</b> on the official
+              <a href="https://github.com/moporgic/TDL2048" target="_blank" rel="noreferrer" style={{ color: 'var(--pink)' }}> TDL2048+ </a>
+              4x6patt N-Tuple weights (Hung Guei, MIT). Sharp / Genius look more plies
+              ahead — 100-game bench: <b>16384 94%, 32768 37%</b> at depth 3.
               Pause any time to take over with arrows or swipes.
             </p>
           </div>
