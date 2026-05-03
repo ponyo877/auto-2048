@@ -94,9 +94,9 @@ export function App() {
       {!solver && !err && <div className="notice">Loading solver…</div>}
       {err && <div className="notice">Error: {err}</div>}
       <div className="notice">
-        TD(0) 学習済 4x6patt N-Tuple Network (3M episode) + expectimax。
-        <br/>ブラウザ既定 depth=3(1 ゲーム 1〜2 分):2048 ほぼ確実、4096 高頻度。
-        <br/>depth セレクタを 4/5 にすると更に高 MAX(計算時間が比例して長くなる)。
+        TC (Temporal Coherence) 学習済 4x6patt N-Tuple Network (1M episode) + expectimax。
+        <br/>実測 (depth=4, 10 ゲーム):4096 100%, 8192 90%, <b>16384 80%</b>。
+        <br/>depth=3 で 1 ゲーム 1〜2 分、depth=4 で 5〜10 分。
       </div>
     </div>
   );
