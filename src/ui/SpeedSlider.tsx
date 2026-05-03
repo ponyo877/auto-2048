@@ -6,10 +6,10 @@ import { useMemo, type CSSProperties } from 'react';
  *   slider 100 -> 0 ms delay (no throttle; AI computes back-to-back at
  *                              the depth's natural rate)
  *
- * We avoid showing "moves/s" because the actual rate is dominated by
- * compute time at higher depths; a 100 ms target is meaningless when one
- * AI step takes 200 ms. Display the delay directly so the control's
- * meaning matches its effect.
+ * The numeric delay is intentionally not shown — at high depths the AI's
+ * own compute time dominates, so the slider's configured throttle has
+ * little correspondence to the user-visible cadence. The 🐢↔🚀 endpoints
+ * communicate the relative meaning without making a misleading promise.
  */
 
 const MIN_MS = 1;          /* lowest non-zero step */
@@ -32,12 +32,6 @@ function sliderToMs(sliderVal: number): number {
   return Math.round(Math.exp(LOG_MAX - t * (LOG_MAX - LOG_MIN)));
 }
 
-function formatDelay(ms: number): string {
-  if (ms <= 0) return 'max';
-  if (ms < 1000) return `${ms} ms`;
-  return `${(ms / 1000).toFixed(1)} s`;
-}
-
 export function SpeedSlider({ ms, onChange }: Props) {
   const sliderVal = useMemo(() => msToSlider(ms), [ms]);
   const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,9 +42,6 @@ export function SpeedSlider({ ms, onChange }: Props) {
     <div className="control-block">
       <div className="control-head">
         <span className="control-label">SPEED</span>
-        <span className="control-value">
-          {ms <= 0 ? 'max' : formatDelay(ms)} <span className="unit">{ms <= 0 ? '' : 'delay'}</span>
-        </span>
       </div>
       <div className="slider-wrap">
         <span className="slider-icon" aria-hidden>🐢</span>
