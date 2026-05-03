@@ -216,6 +216,87 @@ button { font-family: inherit; cursor: pointer; }
   filter: brightness(1.06);
 }
 
+/* ====== 32768: ominous (deep crimson breathing on a void core) ====== */
+.tile.tile-ominous {
+  background:
+    radial-gradient(ellipse 90% 80% at 30% 25%,
+      oklch(0.45 0.22 22) 0%,
+      oklch(0.22 0.20 14) 55%,
+      oklch(0.08 0.10 10) 100%);
+  color: oklch(1 0 0);
+  text-shadow:
+    0 0 8px oklch(0.55 0.30 18 / 0.85),
+    0 1px 0 oklch(0.06 0 0);
+  box-shadow:
+    0 6px 0 0 oklch(0.14 0.18 10),
+    0 10px 28px -6px oklch(0.40 0.30 18 / 0.75),
+    inset 0 0 14px oklch(0.05 0 0),
+    inset 0 0 4px oklch(0.40 0.28 18);
+  animation: ominous-breath 2.6s ease-in-out infinite;
+  position: absolute;
+}
+@keyframes ominous-breath {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px oklch(0.40 0.30 18 / 0.45));
+  }
+  50% {
+    filter: drop-shadow(0 0 14px oklch(0.55 0.32 18 / 0.85));
+  }
+}
+
+/* ====== 65536: evil — animated conic of bruise / hellfire / void ====== */
+@property --evil-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+.tile.tile-evil {
+  --evil-angle: 0deg;
+  background: conic-gradient(
+    from var(--evil-angle),
+    oklch(0.45 0.30 0)    0deg,
+    oklch(0.18 0.18 320)  72deg,
+    oklch(0.05 0.02 0)    144deg,
+    oklch(0.50 0.30 28)   216deg,
+    oklch(0.20 0.22 290)  288deg,
+    oklch(0.45 0.30 0)    360deg
+  );
+  color: oklch(1 0 0);
+  text-shadow:
+    0 0 10px oklch(0.55 0.35 0),
+    0 0 2px oklch(0.95 0.30 50),
+    0 1px 0 oklch(0.05 0 0);
+  box-shadow:
+    0 6px 0 0 oklch(0.10 0.18 0),
+    0 14px 32px -8px oklch(0.40 0.32 0 / 0.85),
+    0 0 24px -4px oklch(0.50 0.30 320 / 0.6),
+    inset 0 0 18px oklch(0.04 0 0),
+    inset 0 0 4px oklch(0.55 0.30 30);
+  animation:
+    evil-rotate 5.5s linear infinite,
+    evil-flicker 3.2s steps(1, end) infinite,
+    evil-throb 1.8s ease-in-out infinite;
+  position: absolute;
+}
+@keyframes evil-rotate {
+  to { --evil-angle: 360deg; }
+}
+@keyframes evil-flicker {
+  0%, 18%, 22%, 60%, 64%, 100% { opacity: 1; }
+  20%, 62% { opacity: 0.78; }
+  21%, 63% { opacity: 0.92; }
+}
+@keyframes evil-throb {
+  0%, 100% { filter: drop-shadow(0 0 6px oklch(0.45 0.32 0 / 0.55)); }
+  50%      { filter: drop-shadow(0 0 18px oklch(0.55 0.35 350 / 0.85)) hue-rotate(15deg); }
+}
+
+/* Reduced motion: keep colours, drop the active animation. */
+@media (prefers-reduced-motion: reduce) {
+  .tile.tile-ominous { animation: none; }
+  .tile.tile-evil    { animation: evil-rotate 18s linear infinite; }
+}
+
 /* Screen shake */
 @keyframes shake {
   0%, 100% { transform: translate(0,0); }

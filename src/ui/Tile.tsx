@@ -19,10 +19,11 @@ const TILE_COLORS: Record<number, TileColors> = {
   2048: { bg: 'oklch(0.62 0.24 5)',   fg: FG_WHITE, shadow: 'oklch(0.50 0.26 5)' },
   4096: { bg: 'oklch(0.58 0.23 350)', fg: FG_WHITE, shadow: 'oklch(0.46 0.25 350)' },
   8192: { bg: 'oklch(0.55 0.22 320)', fg: FG_WHITE, shadow: 'oklch(0.42 0.24 320)' },
+  16384: { bg: 'oklch(0.50 0.22 295)', fg: FG_WHITE, shadow: 'oklch(0.36 0.24 295)' },
 };
 
 function tileColor(v: number): TileColors {
-  return TILE_COLORS[v] ?? TILE_COLORS[8192];
+  return TILE_COLORS[v] ?? TILE_COLORS[16384];
 }
 
 function tileFontSize(v: number): string {
@@ -30,6 +31,15 @@ function tileFontSize(v: number): string {
   if (v < 1000) return 'clamp(24px, 7.5vw, 48px)';
   if (v < 10000) return 'clamp(20px, 6vw, 40px)';
   return 'clamp(16px, 5vw, 32px)';
+}
+
+/** 32768 is the practical endgame, 65536 the theoretical miracle —
+ *  CSS handles their backgrounds & animations so we skip the inline
+ *  colour fields here. */
+function specialClass(v: number): string {
+  if (v >= 65536) return 'tile-evil';
+  if (v >= 32768) return 'tile-ominous';
+  return '';
 }
 
 interface Props {
@@ -42,22 +52,28 @@ interface Props {
 
 export function Tile({ tile, row, col, cellSize, gap }: Props) {
   const v = tile.value;
-  const c = tileColor(v);
   const x = col * (cellSize + gap);
   const y = row * (cellSize + gap);
   const scaleAnim = tile.justSpawned ? 'tile-spawn' : tile.justMerged ? 'tile-merge' : '';
-  const style: CSSProperties = {
+  const special = specialClass(v);
+  const baseStyle: CSSProperties = {
     width: cellSize,
     height: cellSize,
     transform: `translate(${x}px, ${y}px)`,
-    background: c.bg,
-    color: c.fg,
-    boxShadow: `0 6px 0 0 ${c.shadow}, 0 10px 24px -8px ${c.shadow}`,
     fontSize: tileFontSize(v),
     zIndex: tile.justMerged ? 20 : 10,
   };
+  const style: CSSProperties = special ? baseStyle : (() => {
+    const c = tileColor(v);
+    return {
+      ...baseStyle,
+      background: c.bg,
+      color: c.fg,
+      boxShadow: `0 6px 0 0 ${c.shadow}, 0 10px 24px -8px ${c.shadow}`,
+    };
+  })();
   return (
-    <div className={`tile ${scaleAnim}`} style={style}>
+    <div className={`tile ${scaleAnim} ${special}`} style={style}>
       <span className="tile-text">{v}</span>
     </div>
   );
