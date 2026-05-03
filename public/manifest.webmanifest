@@ -1,0 +1,27 @@
+{
+  "name": "AutoPlay 2048",
+  "short_name": "AutoPlay",
+  "description": "Watch an expectimax + N-Tuple Network AI climb to 32,768.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF6F0",
+  "theme_color": "#FF6B9D",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
