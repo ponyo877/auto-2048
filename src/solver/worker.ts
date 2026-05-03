@@ -1,13 +1,8 @@
 /**
- * Worker entry — receives Req messages, dispatches to a Solver implementation,
- * and replies via postMessage. Dispatch is table-driven so this file's
- * cognitive complexity stays low.
- *
- * Solver factory choice:
- *   - default: WASM (heuristic fallback when no weights available)
- *   - inline option in createSolver still uses Mock (for tests)
+ * Worker entry — receives Req messages, dispatches to the WASM-backed
+ * Solver, and replies via postMessage. Dispatch is table-driven so this
+ * file's cognitive complexity stays low.
  */
-import { createMockSolver } from './mock-solver';
 import { createWasmSolverFromFactory, type WasmFactory } from './wasm-solver';
 import type { Req, Res } from './rpc';
 import type { Solver, SolverConfig } from './types';
@@ -20,16 +15,10 @@ function dirOf(url: string): string {
 }
 
 async function bootSolver(config: SolverConfig): Promise<Solver> {
-  if (config.wasmUrl === 'mock') return createMockSolver(config);
   const url = config.wasmUrl ?? '/solver.js';
-  try {
-    const mod = await import(/* @vite-ignore */ url);
-    const factory = (mod.default ?? mod) as WasmFactory;
-    return await createWasmSolverFromFactory(factory, config, dirOf(url));
-  } catch (err) {
-    console.warn('[worker] WASM init failed; falling back to mock:', err);
-    return createMockSolver(config);
-  }
+  const mod = await import(/* @vite-ignore */ url);
+  const factory = (mod.default ?? mod) as WasmFactory;
+  return createWasmSolverFromFactory(factory, config, dirOf(url));
 }
 
 type Handler = (req: Req) => Promise<unknown>;
@@ -47,26 +36,6 @@ const handlers: Record<Req['type'], Handler> = {
   step: async (req) => {
     if (req.type !== 'step') return;
     return need().step(req.board, req.depth);
-  },
-  evaluate: async (req) => {
-    if (req.type !== 'evaluate') return;
-    return need().evaluate(req.board);
-  },
-  evaluateActions: async (req) => {
-    if (req.type !== 'evaluateActions') return;
-    return need().evaluateActions(req.board, req.depth);
-  },
-  simulateMove: async (req) => {
-    if (req.type !== 'simulateMove') return;
-    return need().simulateMove(req.board, req.action);
-  },
-  spawnTile: async (req) => {
-    if (req.type !== 'spawnTile') return;
-    return need().spawnTile(req.board, req.seed);
-  },
-  isGameOver: async (req) => {
-    if (req.type !== 'isGameOver') return;
-    return need().isGameOver(req.board);
   },
   dispose: async () => {
     if (solver) await solver.dispose();
@@ -87,5 +56,3 @@ self.addEventListener('message', async (ev: MessageEvent<Req>) => {
   const res = await dispatch(ev.data);
   (self as DedicatedWorkerGlobalScope).postMessage(res);
 });
-
-export type { SolverConfig };

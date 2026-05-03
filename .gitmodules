@@ -1,3 +1,0 @@
-[submodule "core/third_party/TDL2048"]
-	path = core/third_party/TDL2048
-	url = https://github.com/moporgic/TDL2048.git

@@ -1,8 +1,7 @@
 /**
  * Tile-tracking 2048 engine. Each cell holds a stable id so React can
- * animate slides and merges by transforming the same node from old to
- * new (row, col). Ported from design/engine.js with TypeScript types
- * and split into small functions to keep cognitive complexity low.
+ * animate slides and merges by transforming the same DOM node from old
+ * to new (row, col).
  */
 
 export const SIZE = 4;
@@ -10,35 +9,28 @@ export const SIZE = 4;
 export interface Tile {
   id: number;
   value: number;
-  /** previous (row, col) right before the slide that produced this state. */
-  fromRow?: number;
-  fromCol?: number;
-  /** the two ids that combined into this one this turn. */
-  mergedFrom?: [number, number];
+  /** set on tiles that just collapsed from a merge — drives the pop animation. */
   justMerged?: boolean;
+  /** set on the freshly-spawned tile so it pops in. */
   justSpawned?: boolean;
 }
 
-export type Cell = Tile | null;
+type Cell = Tile | null;
 export type Grid = Cell[][];
 export type Direction = 0 | 1 | 2 | 3; // up, right, down, left
 
 let __id = 1;
-export function nextId(): number { return __id++; }
+function nextId(): number { return __id++; }
 
-export function emptyBoard(): Grid {
+function emptyBoard(): Grid {
   return Array.from({ length: SIZE }, () => Array<Cell>(SIZE).fill(null));
 }
 
-function shallowClone(t: Tile): Tile {
-  return { id: t.id, value: t.value };
+function clone(board: Grid): Grid {
+  return board.map((row) => row.map((c) => (c ? { id: c.id, value: c.value } : null)));
 }
 
-export function clone(board: Grid): Grid {
-  return board.map((row) => row.map((c) => (c ? shallowClone(c) : null)));
-}
-
-export function emptyCells(board: Grid): Array<[number, number]> {
+function emptyCells(board: Grid): Array<[number, number]> {
   const cells: Array<[number, number]> = [];
   for (let r = 0; r < SIZE; r++) {
     for (let c = 0; c < SIZE; c++) {
@@ -48,36 +40,15 @@ export function emptyCells(board: Grid): Array<[number, number]> {
   return cells;
 }
 
-export interface SpawnOptions {
-  /** when set, deterministic value+position via this seed */
-  seed?: number;
-}
-
-function pickFour(rng: () => number): boolean {
-  return rng() < 0.1;
-}
-
-export function spawnTile(board: Grid, opts: SpawnOptions = {}): Grid {
+export function spawnTile(board: Grid): Grid {
   const cells = emptyCells(board);
   if (cells.length === 0) return board;
-  const rng = opts.seed !== undefined ? mulberry32(opts.seed) : Math.random;
-  const idx = Math.floor(rng() * cells.length);
+  const idx = Math.floor(Math.random() * cells.length);
   const [r, c] = cells[idx];
-  const value = pickFour(rng) ? 4 : 2;
+  const value = Math.random() < 0.1 ? 4 : 2;
   const next = clone(board);
   next[r][c] = { id: nextId(), value, justSpawned: true };
   return next;
-}
-
-function mulberry32(seed: number): () => number {
-  let s = seed | 0 || 1;
-  return () => {
-    s = (s + 0x6d2b79f5) | 0;
-    let t = s;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 0x1_0000_0000;
-  };
 }
 
 export function newGame(): Grid {
@@ -128,12 +99,7 @@ function compactRow(row: Tile[]): { row: Tile[]; reward: number; mergedVals: num
     const nxt = row[i + 1];
     if (nxt && cur.value === nxt.value) {
       const newVal = cur.value * 2;
-      out.push({
-        id: cur.id,
-        value: newVal,
-        mergedFrom: [cur.id, nxt.id],
-        justMerged: true,
-      });
+      out.push({ id: cur.id, value: newVal, justMerged: true });
       reward += newVal;
       mergedVals.push(newVal);
       i += 2;
@@ -199,11 +165,6 @@ export function maxValue(board: Grid): number {
     }
   }
   return m;
-}
-
-/** Plain numeric grid for the AI (no IDs). */
-export function toGrid(board: Grid): number[][] {
-  return board.map((row) => row.map((c) => c?.value ?? 0));
 }
 
 /** Convert tile grid to bigint board format for the WASM solver. */

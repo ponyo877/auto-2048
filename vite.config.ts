@@ -7,12 +7,5 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },
   },
-  worker: {
-    format: 'es',
-  },
-  test: {
-    environment: 'happy-dom',
-    globals: false,
-    include: ['src/**/*.{test,spec}.{ts,tsx}'],
-  },
-} as import('vite').UserConfig);
+  worker: { format: 'es' },
+});

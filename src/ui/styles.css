@@ -536,50 +536,6 @@ button { font-family: inherit; cursor: pointer; }
   }
 }
 
-/* ====== Game Over Overlay ====== */
-.overlay {
-  position: absolute; inset: -3px;
-  background: rgba(255, 246, 240, 0.78);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 22px;
-  z-index: 30;
-  display: grid; place-items: center;
-  animation: overlay-in 280ms ease;
-}
-@keyframes overlay-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-.overlay-card {
-  background: #fff;
-  padding: 28px 36px 32px;
-  border-radius: 22px;
-  box-shadow: 0 10px 0 var(--line), 0 30px 60px -20px rgba(180,110,70,0.40);
-  text-align: center;
-  border: 3px solid #FFEEDD;
-  animation: overlay-card-in 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-width: 80%;
-}
-@keyframes overlay-card-in {
-  from { opacity: 0; transform: translateY(20px) scale(0.85); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-.overlay-emoji { font-size: 56px; margin-bottom: 6px; }
-.overlay-title { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; }
-.overlay-sub { font-size: 12px; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.16em; text-transform: uppercase; margin-top: 12px; }
-.overlay-score { font-size: 48px; font-weight: 900; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin: 4px 0 18px; background: linear-gradient(90deg, var(--pink), var(--peach)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.overlay-btn {
-  border: none; padding: 14px 28px;
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--pink), #E85B8B);
-  color: #fff; font-weight: 900; font-size: 16px;
-  box-shadow: 0 5px 0 #C84775, 0 12px 24px -10px rgba(232,91,139,0.55);
-  transition: transform 120ms ease, box-shadow 120ms ease;
-}
-.overlay-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #C84775, 0 14px 28px -10px rgba(232,91,139,0.6); }
-.overlay-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #C84775; }
-
 /* AI thinking ring around board */
 .ai-ring {
   position: absolute; inset: -6px;

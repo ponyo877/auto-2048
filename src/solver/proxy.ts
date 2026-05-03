@@ -1,22 +1,17 @@
-/**
- * Proxy — main-thread façade that forwards Solver calls to a Worker via postMessage.
- * Each method's cognitive complexity is intentionally tiny; all dispatch logic
- * lives in `request<T>()`.
- */
 import type { Req, Res } from './rpc';
-import {
-  type Action,
-  type ActionResult,
-  type SimulateResult,
-  type Solver,
-  SolverError,
-} from './types';
+import type { ActionResult, Solver } from './types';
+import { SolverError } from './types';
 
 interface Pending {
   resolve: (value: unknown) => void;
   reject: (err: Error) => void;
 }
 
+/**
+ * Main-thread façade that forwards Solver calls to a Worker via
+ * postMessage. Dispatch is centralised in `request<T>` so each public
+ * method is a one-line delegate.
+ */
 export class WorkerSolverProxy implements Solver {
   private nextId = 1;
   private readonly pending = new Map<number, Pending>();
@@ -57,26 +52,6 @@ export class WorkerSolverProxy implements Solver {
 
   step(board: bigint, depth = 1): Promise<ActionResult> {
     return this.request<ActionResult>({ type: 'step', board, depth });
-  }
-
-  evaluate(board: bigint): Promise<number> {
-    return this.request<number>({ type: 'evaluate', board });
-  }
-
-  evaluateActions(board: bigint, depth = 1): Promise<[number, number, number, number]> {
-    return this.request<[number, number, number, number]>({ type: 'evaluateActions', board, depth });
-  }
-
-  simulateMove(board: bigint, action: Action): Promise<SimulateResult> {
-    return this.request<SimulateResult>({ type: 'simulateMove', board, action });
-  }
-
-  spawnTile(board: bigint, seed = 0): Promise<bigint> {
-    return this.request<bigint>({ type: 'spawnTile', board, seed });
-  }
-
-  isGameOver(board: bigint): Promise<boolean> {
-    return this.request<boolean>({ type: 'isGameOver', board });
   }
 
   async dispose(): Promise<void> {
