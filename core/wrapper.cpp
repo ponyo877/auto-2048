@@ -1,6 +1,16 @@
 /*
  * wrapper.cpp — minimal 4x6patt N-Tuple solver for the browser.
  *
+ * SPDX-License-Identifier: MIT
+ * Copyright (c) 2026 ponyo877
+ *
+ * This file is a from-scratch C++ implementation of the expectimax
+ * search and 4x6patt N-Tuple feature evaluation described by
+ * Hung Guei in moporgic/TDL2048+ (MIT, Copyright (c) 2021 Hung Guei,
+ * https://github.com/moporgic/TDL2048). It also parses the binary
+ * `.w` weight-file layout defined by that project. No source code
+ * from moporgic/TDL2048 is included or compiled here.
+ *
  * Built into a WASM module via core/build.sh. Loaded by src/solver/wasm-solver.ts
  * over a small extern "C" ABI:
  *

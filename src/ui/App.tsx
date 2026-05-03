@@ -252,11 +252,32 @@ export function App() {
           <div className="card">
             <div className="card-title">How it plays</div>
             <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'var(--ink-soft)' }}>
-              The AI uses <b style={{ color: 'var(--ink)' }}>Expectimax search</b> on the official
+              The AI uses <b style={{ color: 'var(--ink)' }}>Expectimax search</b> over the
+              4x6patt N-Tuple weights from
               <a href="https://github.com/moporgic/TDL2048" target="_blank" rel="noreferrer" style={{ color: 'var(--pink)' }}> TDL2048+ </a>
-              4x6patt N-Tuple weights (Hung Guei, MIT). Sharp / Genius look more plies
-              ahead — 100-game bench: <b>16384 94%, 32768 37%</b> at depth 3.
-              Pause any time to take over with arrows or swipes.
+              (Hung Guei, MIT 2021). Sharp / Genius look more plies ahead — 100-game bench:
+              <b> 16384 94%, 32768 37% </b> at depth 3. Pause any time to take over with arrows or swipes.
+            </p>
+          </div>
+
+          <div className="card credits-card">
+            <div className="card-title">Credits</div>
+            <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-soft)' }}>
+              <b style={{ color: 'var(--ink)' }}>auto-2048</b> — MIT © 2026 ponyo877.
+              <br />
+              Trained 4x6patt N-Tuple weights and the underlying algorithm — MIT © 2021
+              {' '}
+              <a href="https://github.com/moporgic/TDL2048" target="_blank" rel="noreferrer" style={{ color: 'var(--pink)' }}>Hung Guei (TDL2048+)</a>
+              ; redistributed as a TDL2048+ build artefact under the same license.
+              <br />
+              Original <i>2048</i> game concept — MIT © 2014
+              {' '}
+              <a href="https://github.com/gabrielecirulli/2048" target="_blank" rel="noreferrer" style={{ color: 'var(--pink)' }}>Gabriele Cirulli</a>
+              ; no source code reused.
+              <br />
+              Full third-party notices in
+              {' '}
+              <a href="https://github.com/ponyo877/auto-2048/blob/main/NOTICE.md" target="_blank" rel="noreferrer" style={{ color: 'var(--pink)' }}>NOTICE.md</a>.
             </p>
           </div>
         </div>

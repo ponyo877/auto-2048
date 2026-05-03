@@ -39,9 +39,7 @@ bash core/build.sh   # public/solver.{js,wasm} を生成
 ├── .claude/             # Claude Code 用設定 (cognitive complexity hook)
 ├── .husky/              # git pre-commit hook
 ├── core/                # C++/WASM 層
-│   ├── third_party/TDL2048/  (submodule)
-│   ├── patches/         # 0001 / 0002 / 0003 (TODO)
-│   ├── wrapper.cpp      # extern "C" ABI
+│   ├── wrapper.cpp      # 独自実装の expectimax / 4x6patt evaluator (extern "C" ABI)
 │   └── build.sh
 ├── src/
 │   ├── solver/          # TS 層 (Worker + Proxy + Mock + WASM ローダ)
@@ -111,13 +109,33 @@ UI 層を React 以外に差し替えても、Proxy のインターフェース 
 
 ## 参考
 
-- TDL2048+ : https://github.com/moporgic/TDL2048
-- 学習済み重み: https://moporgic.info/2048/model/
-- 関連論文: arXiv:2212.11087
+- TDL2048+ : https://github.com/moporgic/TDL2048 (MIT, Hung Guei 2021)
+- 学習済み重み: https://moporgic.info/2048/model/ (MIT, 同上著者; 詳細は [`NOTICE.md`](./NOTICE.md) §3)
+- 元祖 2048: https://github.com/gabrielecirulli/2048 (MIT, Gabriele Cirulli 2014)
+- 関連論文: arXiv:2212.11087 / IEEE TG vol. 14 no. 3 (doi:10.1109/TG.2021.3109887)
 - 詳細仕様: [`requirements2.md`](./requirements2.md)
 
-## ライセンス
+## ライセンスと帰属
 
-このリポジトリは MIT 予定。
-TDL2048+ は MIT (Hung Guei 2021) — `core/third_party/TDL2048/LICENSE.md`。
-学習済み重みは https://moporgic.info/2048/model/ より配布。
+このリポジトリのソースコード (TypeScript / C++ / build script / 設定 / ドキュメント)
+は **MIT License** で公開しています。詳細は [`LICENSE`](./LICENSE)、第三者帰属の
+全文は [`NOTICE.md`](./NOTICE.md) を参照してください。
+
+| 項目 | 著作権 / ライセンス | 当 repo での扱い |
+|---|---|---|
+| `auto-2048` 本体のソース | MIT, © 2026 ponyo877 | 自前実装 |
+| 元祖 *2048* (Gabriele Cirulli, 2014) | MIT | コード非流用 — 礼儀としての帰属表記のみ |
+| TDL2048+ (Hung Guei, 2021) — アルゴリズム / `.w` フォーマット | MIT | `core/wrapper.cpp` は独自実装、ソース非流用 |
+| **4x6patt 学習済み重み** | MIT (Hung Guei, 2021) として再配布 | `public/weights/4x6patt.trained.w.gz`(gitignore、build で `dist/` に同梱) |
+
+### 重みファイルの法的根拠 (要約)
+
+`moporgic/TDL2048` の README は重み URL `https://moporgic.info/2048/model/4x6patt.w.xz`
+を build pipeline の一部として明示参照しており、makefile は
+`curl -OJRf moporgic.info/2048/model/$@.w.xz && xz -vd $@.w.xz` で同 URL を
+自動取得します。これらは MIT ライセンスの配布物の一部であるため、当 repo は
+重みファイルを **同 MIT ライセンス・著者帰属保持** で再配布しています。
+詳細は [`NOTICE.md` §3](./NOTICE.md) を参照。
+
+このリポジトリを fork / redistribute する場合は、`LICENSE` と `NOTICE.md`、および
+アプリ UI の "How it plays" パネルに記載された帰属表記を**そのまま保持してください**。
