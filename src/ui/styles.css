@@ -167,7 +167,7 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
   font-variant-numeric: tabular-nums;
   line-height: 1.05;
 }
-.stat-value.big { font-size: 40px; }
+.stat-value.big { font-size: clamp(24px, 8.5vw, 40px); }
 
 /* ====== Board ====== */
 .board-wrap {
@@ -347,9 +347,14 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
 /* Touch devices: drop the decorative bubble layer. The 6× position:fixed
  * blurred discs with running keyframes are a frame-budget tax on mid-
  * range Android GPUs and add nothing the rest of the UI doesn't already
- * carry. */
+ * carry. Direction-flash arrows are also hidden — at phone widths they
+ * would land outside the viewport (their `left/right: -68 px` plus the
+ * `dir-flash-board { inset: -12 px }` puts them ~80 px past the board
+ * edge, which is past the viewport on a 360 px column). The tile slide
+ * animation already conveys the AI's chosen direction. */
 @media (hover: none) and (pointer: coarse) {
-  .bg-bubbles { display: none; }
+  .bg-bubbles      { display: none; }
+  .dir-flash-board { display: none; }
 }
 
 /* Visible focus indicator for keyboard users, since the heavily styled

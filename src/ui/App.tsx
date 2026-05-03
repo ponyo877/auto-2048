@@ -218,8 +218,8 @@ export function App() {
               <div className="brand-logo">2³</div>
               <div className="brand-text">
                 <h1 className="brand-title">AutoPlay&nbsp;2048</h1>
-                <div className="brand-sub">
-                  <span className={`dot ${dotClass(playing, gameOver)}`}></span>
+                <div className="brand-sub" aria-live="polite" aria-atomic="true">
+                  <span className={`dot ${dotClass(playing, gameOver)}`} aria-hidden="true"></span>
                   {statusContent({
                     browserError, solverErr, solver, consented, progress,
                     gameOver, won, board, playing, aiLevel, score,
