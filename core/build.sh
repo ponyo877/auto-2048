@@ -16,15 +16,9 @@ if ! command -v emcc >/dev/null 2>&1; then
   exit 1
 fi
 
-if [ ! -f "third_party/TDL2048/2048.cpp" ]; then
-  echo "ERROR: TDL2048 submodule not initialised. Run:" >&2
-  echo "  git submodule update --init --recursive" >&2
-  exit 1
-fi
-
-# NOTE: v1 wrapper.cpp is self-contained and does NOT include TDL2048+
-# headers (libc++ specialisations in TDL2048+ master fail under emcc 5.0.7
-# libc++; porting is multi-day). Keep submodule for future Phase upgrades.
+# wrapper.cpp is self-contained — it parses the TDL2048+ `.w` format
+# and reimplements the 4x6patt expectimax search from scratch, so we
+# do not need the upstream TDL2048+ source tree to build.
 
 mkdir -p ../public
 

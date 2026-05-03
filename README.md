@@ -15,7 +15,7 @@
 
 ```bash
 git clone <this-repo>
-cd auto-2048
+cd autoplay-2048
 git submodule update --init --recursive
 npm install
 npm run dev          # http://localhost:5173 で MockSolver 版が動く
