@@ -39,6 +39,7 @@ interface KeyHandlerArgs {
   gameOver: boolean;
   onMove: (dir: Direction, fromAI: boolean) => void;
   onAiStep: () => void;
+  onTogglePlay: () => void;
 }
 
 const KEY_MAP: Record<string, Direction> = {
@@ -46,9 +47,19 @@ const KEY_MAP: Record<string, Direction> = {
   w: 0, d: 1, s: 2, a: 3, W: 0, D: 1, S: 2, A: 3,
 };
 
-function useKeyboard({ playing, gameOver, onMove, onAiStep }: KeyHandlerArgs) {
+const FOCUS_TAGS = new Set(['BUTTON', 'INPUT', 'TEXTAREA', 'SELECT']);
+function isFocusedInteractive(t: EventTarget | null): boolean {
+  return t instanceof HTMLElement && FOCUS_TAGS.has(t.tagName);
+}
+
+function useKeyboard({ playing, gameOver, onMove, onAiStep, onTogglePlay }: KeyHandlerArgs) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !isFocusedInteractive(e.target)) {
+        e.preventDefault();
+        onTogglePlay();
+        return;
+      }
       if (playing || gameOver) return;
       if (e.key === ' ' || e.code === 'Space') {
         e.preventDefault();
@@ -63,7 +74,7 @@ function useKeyboard({ playing, gameOver, onMove, onAiStep }: KeyHandlerArgs) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [playing, gameOver, onMove, onAiStep]);
+  }, [playing, gameOver, onMove, onAiStep, onTogglePlay]);
 }
 
 export function App() {
@@ -127,16 +138,6 @@ export function App() {
     doMove(action as Direction, true);
   }, [solver, gameOver, aiLevel, doMove]);
 
-  useKeyboard({ playing, gameOver, onMove: doMove, onAiStep: aiStepOnce });
-
-  useAutoPlay({
-    solver, playing, gameOver, speedMs, aiLevel,
-    boardRef, doMove,
-    onAiThinkingChange: setAiThinking,
-    onPlayingChange: setPlaying,
-    onGameOver: () => setGameOver(true),
-  });
-
   const restart = useCallback(() => {
     setBoard(newGame());
     setScore(0); setMoves(0);
@@ -147,6 +148,19 @@ export function App() {
     if (gameOver) { restart(); setTimeout(() => setPlaying(true), 50); return; }
     setPlaying((p) => !p);
   }, [gameOver, restart]);
+
+  useKeyboard({
+    playing, gameOver,
+    onMove: doMove, onAiStep: aiStepOnce, onTogglePlay: togglePlay,
+  });
+
+  useAutoPlay({
+    solver, playing, gameOver, speedMs, aiLevel,
+    boardRef, doMove,
+    onAiThinkingChange: setAiThinking,
+    onPlayingChange: setPlaying,
+    onGameOver: () => setGameOver(true),
+  });
 
   const handleSwipe = useCallback((d: Direction) => {
     if (!playing) doMove(d, false);
@@ -198,8 +212,9 @@ export function App() {
               <span className="kbd">↑</span><span className="kbd">↓</span><span className="kbd">←</span><span className="kbd">→</span> move
             </span>
             <span className="hint"><span className="kbd">Space</span> AI step</span>
+            <span className="hint"><span className="kbd">Enter</span> AI play / pause</span>
             <span className="hint">or swipe on touch</span>
-            {playing && <span className="hint">— controls locked while AI plays</span>}
+            {playing && <span className="hint">— manual controls locked while AI plays</span>}
           </div>
         </div>
 
