@@ -95,8 +95,8 @@ export function App() {
       {err && <div className="notice">Error: {err}</div>}
       <div className="notice">
         TC (Temporal Coherence) 学習済 4x6patt N-Tuple Network (1M episode) + expectimax。
-        <br/>実測 (depth=4, 10 ゲーム):4096 100%, 8192 90%, <b>16384 80%</b>。
-        <br/>depth=3 で 1 ゲーム 1〜2 分、depth=4 で 5〜10 分。
+        <br/>実測 (depth=4, 100 ゲーム):4096 98%, 8192 93%, <b>16384 67% (95% CI 57–75%)</b>。
+        <br/>depth=3 で 1 ゲーム 1〜2 分、depth=4 で 1〜2 分(直 WASM)/ 5〜10 分(Worker UI 経由)。
       </div>
     </div>
   );
