@@ -1,31 +1,45 @@
 import { useMemo, type CSSProperties } from 'react';
 
-const MIN_MS = 50;
+/**
+ * Speed slider: controls the inter-move delay only.
+ *   slider 0   -> 2000 ms delay (slowest)
+ *   slider 100 -> 0 ms delay (no throttle; AI computes back-to-back at
+ *                              the depth's natural rate)
+ *
+ * We avoid showing "moves/s" because the actual rate is dominated by
+ * compute time at higher depths; a 100 ms target is meaningless when one
+ * AI step takes 200 ms. Display the delay directly so the control's
+ * meaning matches its effect.
+ */
+
+const MIN_MS = 1;          /* lowest non-zero step */
 const MAX_MS = 2000;
 const LOG_MIN = Math.log(MIN_MS);
 const LOG_MAX = Math.log(MAX_MS);
 
 interface Props { ms: number; onChange: (ms: number) => void; }
-
 interface SliderStyle extends CSSProperties { '--pct': string; }
 
 function msToSlider(ms: number): number {
-  const t = (LOG_MAX - Math.log(ms)) / (LOG_MAX - LOG_MIN);
+  if (ms <= 0) return 100;
+  const t = (LOG_MAX - Math.log(Math.max(MIN_MS, ms))) / (LOG_MAX - LOG_MIN);
   return Math.round(t * 100);
 }
 
 function sliderToMs(sliderVal: number): number {
+  if (sliderVal >= 100) return 0;
   const t = sliderVal / 100;
   return Math.round(Math.exp(LOG_MAX - t * (LOG_MAX - LOG_MIN)));
 }
 
-function formatMps(mps: number): string {
-  return mps >= 10 ? mps.toFixed(0) : mps.toFixed(1);
+function formatDelay(ms: number): string {
+  if (ms <= 0) return 'max';
+  if (ms < 1000) return `${ms} ms`;
+  return `${(ms / 1000).toFixed(1)} s`;
 }
 
 export function SpeedSlider({ ms, onChange }: Props) {
   const sliderVal = useMemo(() => msToSlider(ms), [ms]);
-  const movesPerSec = 1000 / ms;
   const handle = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(sliderToMs(Number(e.target.value)));
   };
@@ -35,7 +49,7 @@ export function SpeedSlider({ ms, onChange }: Props) {
       <div className="control-head">
         <span className="control-label">SPEED</span>
         <span className="control-value">
-          {formatMps(movesPerSec)} <span className="unit">moves/s</span>
+          {ms <= 0 ? 'max' : formatDelay(ms)} <span className="unit">{ms <= 0 ? '' : 'delay'}</span>
         </span>
       </div>
       <div className="slider-wrap">
