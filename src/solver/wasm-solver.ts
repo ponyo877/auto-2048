@@ -1,5 +1,6 @@
 import { SolverError, SOLVER_ERROR_CODES } from './types';
 import type { ActionResult, Solver, SolverConfig } from './types';
+import { fetchWeights } from './fetch-weights';
 
 interface EmModule {
   cwrap: (name: string, ret: string | null, args: string[]) => (...a: unknown[]) => unknown;
@@ -25,25 +26,7 @@ function bind(mod: EmModule): CoreApi {
   };
 }
 
-async function fetchWeights(url: string): Promise<Uint8Array> {
-  const res = await fetch(url);
-  if (!res.ok) throw new SolverError('fetch', `weights fetch ${res.status}`);
-  /* Vite preview (and many CDNs) auto-set Content-Encoding: gzip for .gz
-   * files, so the browser may decompress transparently. Detect the gzip
-   * magic and decompress only when needed. */
-  const buf = new Uint8Array(await res.arrayBuffer());
-  if (buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b) {
-    const ds = new DecompressionStream('gzip');
-    const writer = ds.writable.getWriter();
-    writer.write(buf);
-    writer.close();
-    return new Uint8Array(await new Response(ds.readable).arrayBuffer());
-  }
-  return buf;
-}
-
-async function pushWeights(api: CoreApi, mod: EmModule, url: string): Promise<void> {
-  const buf = await fetchWeights(url);
+function pushWeights(api: CoreApi, mod: EmModule, buf: Uint8Array): void {
   const ptr = mod._malloc(buf.byteLength);
   mod.HEAPU8.set(buf, ptr);
   try {
@@ -52,6 +35,12 @@ async function pushWeights(api: CoreApi, mod: EmModule, url: string): Promise<vo
   } finally {
     mod._free(ptr);
   }
+}
+
+async function resolveWeights(config: SolverConfig): Promise<Uint8Array | undefined> {
+  if (config.weightsBytes) return config.weightsBytes;
+  if (config.weightsUrl) return fetchWeights(config.weightsUrl);
+  return undefined;
 }
 
 class WasmSolver implements Solver {
@@ -79,6 +68,7 @@ export async function createWasmSolverFromFactory(
   if (api.init(config.network) !== SOLVER_ERROR_CODES.OK) {
     throw new SolverError(SOLVER_ERROR_CODES.INVALID_NETWORK, `init failed: ${config.network}`);
   }
-  if (config.weightsUrl) await pushWeights(api, mod, config.weightsUrl);
+  const buf = await resolveWeights(config);
+  if (buf) pushWeights(api, mod, buf);
   return new WasmSolver(api);
 }

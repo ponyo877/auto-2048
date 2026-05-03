@@ -36,18 +36,24 @@ export class WorkerSolverProxy implements Solver {
     this.pending.clear();
   }
 
-  private request<T>(payload: { type: Req['type'] } & Record<string, unknown>): Promise<T> {
+  private request<T>(
+    payload: { type: Req['type'] } & Record<string, unknown>,
+    transfer: Transferable[] = [],
+  ): Promise<T> {
     if (this.disposed) return Promise.reject(new SolverError('disposed', 'solver disposed'));
     const id = this.nextId++;
     const message = { ...payload, id } as unknown as Req;
     return new Promise<T>((resolve, reject) => {
       this.pending.set(id, { resolve: resolve as (v: unknown) => void, reject });
-      this.worker.postMessage(message);
+      this.worker.postMessage(message, transfer);
     });
   }
 
-  init(config: Extract<Req, { type: 'init' }>['config']): Promise<void> {
-    return this.request<void>({ type: 'init', config });
+  init(
+    config: Extract<Req, { type: 'init' }>['config'],
+    transfer: Transferable[] = [],
+  ): Promise<void> {
+    return this.request<void>({ type: 'init', config }, transfer);
   }
 
   step(board: bigint, depth = 1): Promise<ActionResult> {

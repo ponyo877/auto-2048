@@ -4,6 +4,8 @@ export type ActionResult = Action | -1;
 export interface SolverConfig {
   network: '4x6patt' | string;
   weightsUrl?: string;
+  /** Pre-fetched weight bytes. Takes precedence over weightsUrl when present. */
+  weightsBytes?: Uint8Array;
   wasmUrl?: string;
 }
 

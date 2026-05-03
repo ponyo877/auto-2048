@@ -30,8 +30,14 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* Mobile: stop iOS landscape auto-resize, kill default tap flash, and
+   * keep pull-to-refresh from reloading mid-swipe. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: contain;
 }
-button { font-family: inherit; cursor: pointer; }
+button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
 
 /* Floating background bubbles for candy-pop atmosphere */
 .bg-bubbles { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
@@ -51,12 +57,21 @@ button { font-family: inherit; cursor: pointer; }
 .app {
   position: relative;
   z-index: 1;
+  /* Use the dynamic viewport so iOS Safari's collapsing chrome doesn't
+   * leave us with a too-tall layout. Fall back to vh on browsers that
+   * don't know dvh. */
   min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 28px 20px 40px;
+  /* env() picks up notch / Dynamic Island / home-indicator insets. */
+  padding:
+    max(28px, env(safe-area-inset-top))
+    max(20px, env(safe-area-inset-right))
+    max(40px, env(safe-area-inset-bottom))
+    max(20px, env(safe-area-inset-left));
 }
 .shell {
   width: 100%;
@@ -68,7 +83,13 @@ button { font-family: inherit; cursor: pointer; }
 }
 @media (max-width: 900px) {
   .shell { grid-template-columns: 1fr; gap: 22px; }
-  .app { padding: 18px 14px 32px; }
+  .app {
+    padding:
+      max(18px, env(safe-area-inset-top))
+      max(14px, env(safe-area-inset-right))
+      max(32px, env(safe-area-inset-bottom))
+      max(14px, env(safe-area-inset-left));
+  }
 }
 
 .brand-row {
@@ -347,13 +368,17 @@ button { font-family: inherit; cursor: pointer; }
   transform: translateY(0);
   transition: transform 120ms ease, box-shadow 120ms ease, background 200ms ease;
 }
-.pp-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #C84775, 0 18px 32px -10px rgba(232,91,139,0.6); }
+@media (hover: hover) {
+  .pp-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #C84775, 0 18px 32px -10px rgba(232,91,139,0.6); }
+}
 .pp-btn:active { transform: translateY(3px); box-shadow: 0 3px 0 #C84775, 0 8px 18px -8px rgba(232,91,139,0.5); }
 .pp-btn.is-playing {
   background: linear-gradient(180deg, var(--mint), #45BC97);
   box-shadow: 0 6px 0 #379B7B, 0 14px 28px -10px rgba(69,188,151,0.55);
 }
-.pp-btn.is-playing:hover { box-shadow: 0 8px 0 #379B7B, 0 18px 32px -10px rgba(69,188,151,0.6); }
+@media (hover: hover) {
+  .pp-btn.is-playing:hover { box-shadow: 0 8px 0 #379B7B, 0 18px 32px -10px rgba(69,188,151,0.6); }
+}
 .pp-btn.is-playing:active { box-shadow: 0 3px 0 #379B7B, 0 8px 18px -8px rgba(69,188,151,0.5); }
 .pp-glyph { display: inline-grid; place-items: center; }
 .pp-label { line-height: 1; }
@@ -372,7 +397,9 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 4px 0 #F0DCC4;
   transition: transform 120ms ease, box-shadow 120ms ease, background 160ms ease;
 }
-.icon-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #F0DCC4; background: #FFE6CF; }
+@media (hover: hover) {
+  .icon-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 0 #F0DCC4; background: #FFE6CF; }
+}
 .icon-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #F0DCC4; }
 .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -389,10 +416,12 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 4px 0 #F0DCC4, inset 0 0 0 2px #FFE0C5;
   transition: transform 120ms ease, box-shadow 120ms ease, background 160ms ease;
 }
-.step-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #F0DCC4, inset 0 0 0 2px var(--peach);
-  background: linear-gradient(180deg, #fff, #FFE6CF);
+@media (hover: hover) {
+  .step-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 0 #F0DCC4, inset 0 0 0 2px var(--peach);
+    background: linear-gradient(180deg, #fff, #FFE6CF);
+  }
 }
 .step-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #F0DCC4, inset 0 0 0 2px var(--peach); }
 .step-btn:disabled { opacity: 0.45; cursor: not-allowed; }
@@ -451,6 +480,11 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 3px 0 #C84775;
   cursor: grab;
 }
+/* Coarse pointer = touch; bump the slider thumb to ≥44 px (HIG / WCAG 2.5.5). */
+@media (hover: none) and (pointer: coarse) {
+  .speed-slider::-webkit-slider-thumb { width: 44px; height: 44px; }
+  .speed-slider::-moz-range-thumb     { width: 44px; height: 44px; }
+}
 
 /* Pip row (AI level) */
 .pip-row {
@@ -484,7 +518,9 @@ button { font-family: inherit; cursor: pointer; }
   box-shadow: 0 6px 0 #C84775, 0 10px 20px -8px rgba(232,91,139,0.5);
 }
 .pip-num { position: relative; z-index: 1; }
-.pip:hover:not(.on) { background: #FFE6CF; }
+@media (hover: hover) {
+  .pip:hover:not(.on) { background: #FFE6CF; }
+}
 
 /* Move counter inline pill */
 .meta-pill {
@@ -519,6 +555,23 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 11px;
   font-weight: 700;
   color: var(--ink);
+}
+/* Touch devices: hide keyboard-only hints, leave swipe hint visible. */
+@media (hover: none) and (pointer: coarse) {
+  .hint.hint-key { display: none; }
+}
+
+/* Save-Data consent button shown in place of "Loading…" status when the
+ * client signals saveData. Tapping it kicks off the 167 MB download. */
+.load-consent-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 12px;
+  background: var(--pink); color: #fff;
+  border: none; border-radius: 999px;
+  font-size: 11px; font-weight: 800; letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 0 #C84775;
+  touch-action: manipulation;
 }
 
 /* ====== Direction Flash (AI move indicator, around board) ====== */
@@ -598,6 +651,7 @@ button { font-family: inherit; cursor: pointer; }
 .confetti {
   position: absolute;
   top: -8vh;
+  top: -8svh;
   display: block;
   border-radius: 2px;
   animation-name: confetti-fall;

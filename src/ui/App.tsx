@@ -9,16 +9,69 @@ import { IconButton } from './IconButton';
 import { SpeedSlider } from './SpeedSlider';
 import { AILevel } from './AILevel';
 import { useAutoPlay } from './useAutoPlay';
+import { useSolverLoader, type Progress } from './useSolverLoader';
 import {
   newGame, move, canMove, spawnTile, maxValue, gridToBigint,
   type Direction, type Grid,
 } from '@/lib/engine';
-import { createSolver, type Solver } from '@/solver';
+import type { Solver } from '@/solver';
 
 const INITIAL_SPEED_MS = 250;
 const INITIAL_AI_LEVEL = 3;
 const BIG_MERGE = 256;
 const AI_THINK_FLASH_MS = 220;
+const WEIGHTS_URL = '/weights/4x6patt.trained.w.gz';
+function formatMB(bytes: number): string {
+  return `${(bytes / 1048576).toFixed(1)} MB`;
+}
+function progressLabel(p: Progress | null): string {
+  if (!p) return 'Loading model…';
+  const pct = p.total > 0 ? Math.floor((p.loaded / p.total) * 100) : 0;
+  return p.total > 0
+    ? `Loading model… ${pct}% (${formatMB(p.loaded)} / ${formatMB(p.total)})`
+    : `Loading model… ${formatMB(p.loaded)}`;
+}
+
+function dotClass(playing: boolean, gameOver: boolean): string {
+  if (playing) return '';
+  if (gameOver) return 'over';
+  return 'idle';
+}
+
+interface GameOverArgs { won: boolean; board: Grid; score: number }
+function gameOverLabel(a: GameOverArgs): string {
+  const final = a.score.toLocaleString();
+  return a.won && !canMove(a.board)
+    ? `🎉 You hit 2048! Final ${final}`
+    : `💔 Game over — Final ${final}`;
+}
+
+interface StatusArgs extends GameOverArgs {
+  browserError: string | null;
+  solverErr: string | null;
+  solver: Solver | null;
+  consented: boolean;
+  progress: Progress | null;
+  gameOver: boolean;
+  playing: boolean;
+  aiLevel: number;
+  onConsent: () => void;
+}
+function statusContent(a: StatusArgs): React.ReactNode {
+  if (a.browserError) return `Unsupported: ${a.browserError}`;
+  if (a.solverErr) return `Error: ${a.solverErr}`;
+  if (!a.solver && !a.consented) {
+    return (
+      <button className="load-consent-btn" onClick={a.onConsent}>
+        Tap to load 167 MB AI model
+      </button>
+    );
+  }
+  if (!a.solver) return progressLabel(a.progress);
+  if (a.gameOver) return gameOverLabel(a);
+  if (a.playing) return `AI Lv.${a.aiLevel} thinking…`;
+  return 'Ready';
+}
 
 interface MoveOutcome {
   next: Grid;
@@ -91,25 +144,13 @@ export function App() {
   const [aiThinking, setAiThinking] = useState(false);
   const [moveDir, setMoveDir] = useState<FlashTrigger | null>(null);
   const [byAI, setByAI] = useState(false);
-  const [solver, setSolver] = useState<Solver | null>(null);
-  const [solverErr, setSolverErr] = useState<string | null>(null);
+  const { solver, solverErr, progress, browserError, consented, consent } =
+    useSolverLoader(WEIGHTS_URL);
 
   const boardRef = useRef(board);
   useEffect(() => { boardRef.current = board; }, [board]);
 
   const max = maxValue(board);
-
-  useEffect(() => {
-    let disposed = false;
-    createSolver({
-      network: '4x6patt',
-      wasmUrl: '/solver.js',
-      weightsUrl: '/weights/4x6patt.trained.w.gz',
-    })
-      .then((s) => { if (!disposed) setSolver(s); })
-      .catch((e) => setSolverErr(String(e)));
-    return () => { disposed = true; };
-  }, []);
 
   const doMove = useCallback((dir: Direction, fromAI: boolean) => {
     if (gameOver) return false;
@@ -178,18 +219,12 @@ export function App() {
               <div className="brand-text">
                 <div className="brand-title">AutoPlay&nbsp;2048</div>
                 <div className="brand-sub">
-                  <span className={`dot ${playing ? '' : gameOver ? 'over' : 'idle'}`}></span>
-                  {solverErr
-                    ? `Error: ${solverErr}`
-                    : !solver
-                    ? 'Loading solver…'
-                    : gameOver
-                    ? (won && !canMove(board)
-                        ? `🎉 You hit 2048! Final ${score.toLocaleString()}`
-                        : `💔 Game over — Final ${score.toLocaleString()}`)
-                    : playing
-                    ? `AI Lv.${aiLevel} thinking…`
-                    : 'Ready'}
+                  <span className={`dot ${dotClass(playing, gameOver)}`}></span>
+                  {statusContent({
+                    browserError, solverErr, solver, consented, progress,
+                    gameOver, won, board, playing, aiLevel, score,
+                    onConsent: consent,
+                  })}
                 </div>
               </div>
             </div>
@@ -208,12 +243,12 @@ export function App() {
           </div>
 
           <div className="hint-row">
-            <span className="hint">
+            <span className="hint hint-key">
               <span className="kbd">↑</span><span className="kbd">↓</span><span className="kbd">←</span><span className="kbd">→</span> move
             </span>
-            <span className="hint"><span className="kbd">Space</span> AI step</span>
-            <span className="hint"><span className="kbd">Enter</span> AI play / pause</span>
-            <span className="hint">or swipe on touch</span>
+            <span className="hint hint-key"><span className="kbd">Space</span> AI step</span>
+            <span className="hint hint-key"><span className="kbd">Enter</span> AI play / pause</span>
+            <span className="hint">Swipe to move tiles</span>
             {playing && <span className="hint">— manual controls locked while AI plays</span>}
           </div>
         </div>
