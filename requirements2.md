@@ -181,7 +181,7 @@ UI 差し替え可能性は Layer 3 (Proxy) のインターフェース固定で
 ## 4. ディレクトリ構成
 
 ```
-auto-2048/
+autoplay-2048/
 ├── core/                          # Layer 1
 │   ├── third_party/TDL2048/       # git submodule (master)
 │   ├── patches/

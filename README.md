@@ -1,7 +1,9 @@
-# auto-2048
+# AutoPlay 2048
 
 ブラウザで 2048 を学習済み N-Tuple Network エージェントが自動プレイするデモ。
 コアは [TDL2048+](https://github.com/moporgic/TDL2048) (MIT, Hung Guei 2021) の Emscripten WASM 化。
+
+> npm package name: `autoplay-2048`
 
 ## 現在の状態
 
@@ -123,7 +125,7 @@ UI 層を React 以外に差し替えても、Proxy のインターフェース 
 
 | 項目 | 著作権 / ライセンス | 当 repo での扱い |
 |---|---|---|
-| `auto-2048` 本体のソース | MIT, © 2026 ponyo877 | 自前実装 |
+| `AutoPlay 2048` 本体のソース | MIT, © 2026 ponyo877 | 自前実装 |
 | 元祖 *2048* (Gabriele Cirulli, 2014) | MIT | コード非流用 — 礼儀としての帰属表記のみ |
 | TDL2048+ (Hung Guei, 2021) — アルゴリズム / `.w` フォーマット | MIT | `core/wrapper.cpp` は独自実装、ソース非流用 |
 | **4x6patt 学習済み重み** | MIT (Hung Guei, 2021) として再配布 | `public/weights/4x6patt.trained.w.gz`(gitignore、build で `dist/` に同梱) |

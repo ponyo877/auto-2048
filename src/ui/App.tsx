@@ -176,7 +176,7 @@ export function App() {
             <div className="brand">
               <div className="brand-logo">2³</div>
               <div className="brand-text">
-                <div className="brand-title">AI&nbsp;Play&nbsp;2048</div>
+                <div className="brand-title">AutoPlay&nbsp;2048</div>
                 <div className="brand-sub">
                   <span className={`dot ${playing ? '' : gameOver ? 'over' : 'idle'}`}></span>
                   {solverErr
@@ -263,7 +263,7 @@ export function App() {
           <div className="card credits-card">
             <div className="card-title">Credits</div>
             <p style={{ margin: 0, fontSize: 12, lineHeight: 1.6, color: 'var(--ink-soft)' }}>
-              <b style={{ color: 'var(--ink)' }}>auto-2048</b> — MIT © 2026 ponyo877.
+              <b style={{ color: 'var(--ink)' }}>AutoPlay 2048</b> — MIT © 2026 ponyo877.
               <br />
               Trained 4x6patt N-Tuple weights and the underlying algorithm — MIT © 2021
               {' '}

@@ -1,6 +1,7 @@
 # Third-Party Notices
 
-`auto-2048` itself is licensed under the MIT License (see `LICENSE`).
+`AutoPlay 2048` (npm: `autoplay-2048`) itself is licensed under the
+MIT License (see `LICENSE`).
 This file records third-party works that informed, are referenced by,
 or are loaded into this project at runtime, and the license terms
 under which we use, attribute, or redistribute them.
