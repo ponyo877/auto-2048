@@ -257,12 +257,19 @@ static u32 pattern_index(u64 b, const int positions[TILES_PER_PATTERN]) {
     return idx;
 }
 
-/* === weights ============================================================ */
+/* === weights (multistage capable) =======================================
+ * Single-stage weights live in WEIGHTS[]. When a multistage .w is loaded
+ * (num=8 features), the second 4 land in WEIGHTS_LATE[] and g_multistage
+ * is true; evaluate_ntuple then dispatches by max-tile threshold. */
+static constexpr int STAGE_THRESHOLD_LOG = 13;  /* 8192 */
 static std::vector<float> WEIGHTS[FEATURE_COUNT];
+static std::vector<float> WEIGHTS_LATE[FEATURE_COUNT];
 static bool g_initialised = false;
 static bool g_weights_loaded = false;
+static bool g_multistage = false;
 
-/* TDL2048+ .w stream layout — see requirements2.md §2.4 */
+/* TDL2048+ .w stream layout — see requirements2.md §2.4. Accept either
+ * num=4 (single-stage) or num=8 (multistage). */
 static int try_load_weights(const u8* data, size_t size) {
     if (size < 5) return ERR_WEIGHT_FORMAT;
     size_t off = 0;
@@ -277,33 +284,38 @@ static int try_load_weights(const u8* data, size_t size) {
     if (wrapper_code != 0) return ERR_WEIGHT_FORMAT;
     if (!need(4)) return ERR_WEIGHT_FORMAT;
     u32 num = rd_u32();
-    if (num != FEATURE_COUNT) return ERR_WEIGHT_FORMAT;
+    int stages = (num == FEATURE_COUNT) ? 1 :
+                 (num == 2u * FEATURE_COUNT) ? 2 : 0;
+    if (stages == 0) return ERR_WEIGHT_FORMAT;
 
-    for (u32 i = 0; i < num; i++) {
-        if (!need(1+4+2+2+2+8)) return ERR_WEIGHT_FORMAT;
-        u8  entry_code = rd_u8(); (void)entry_code;
-        u32 sign = rd_u32(); (void)sign;
-        u16 sign_size = rd_u16(); (void)sign_size;
-        u16 reserved = rd_u16(); (void)reserved;
-        u16 blkz = rd_u16();
-        u64 length = rd_u64();
-        if (blkz != sizeof(float)) return ERR_WEIGHT_FORMAT;
-        if (length != PATTERN_SIZE) return ERR_WEIGHT_FORMAT;
-        if (!need(length * sizeof(float))) return ERR_WEIGHT_FORMAT;
-        WEIGHTS[i].resize(length);
-        std::memcpy(WEIGHTS[i].data(), data+off, length * sizeof(float));
-        off += length * sizeof(float);
-        /* terminator u16 == 0; coherence-mode extras are skipped */
-        while (need(2)) {
-            u16 tag = rd_u16();
-            if (tag == 0) break;
-            /* extra blkz block (coherence accum/updvu): skip blkz_field + length + payload */
-            if (!need(8)) return ERR_WEIGHT_FORMAT;
-            u64 xlen = rd_u64();
-            if (!need(xlen * tag)) return ERR_WEIGHT_FORMAT;
-            off += xlen * tag;
+    for (int s = 0; s < stages; s++) {
+        std::vector<float>* dst = (s == 0) ? WEIGHTS : WEIGHTS_LATE;
+        for (int i = 0; i < FEATURE_COUNT; i++) {
+            if (!need(1+4+2+2+2+8)) return ERR_WEIGHT_FORMAT;
+            u8  entry_code = rd_u8(); (void)entry_code;
+            u32 sign = rd_u32(); (void)sign;
+            u16 sign_size = rd_u16(); (void)sign_size;
+            u16 reserved = rd_u16(); (void)reserved;
+            u16 blkz = rd_u16();
+            u64 length = rd_u64();
+            if (blkz != sizeof(float)) return ERR_WEIGHT_FORMAT;
+            if (length != PATTERN_SIZE) return ERR_WEIGHT_FORMAT;
+            if (!need(length * sizeof(float))) return ERR_WEIGHT_FORMAT;
+            dst[i].resize(length);
+            std::memcpy(dst[i].data(), data+off, length * sizeof(float));
+            off += length * sizeof(float);
+            /* terminator u16 == 0; coherence-mode extras are skipped */
+            while (need(2)) {
+                u16 tag = rd_u16();
+                if (tag == 0) break;
+                if (!need(8)) return ERR_WEIGHT_FORMAT;
+                u64 xlen = rd_u64();
+                if (!need(xlen * tag)) return ERR_WEIGHT_FORMAT;
+                off += xlen * tag;
+            }
         }
     }
+    g_multistage = (stages == 2);
     return OK_;
 }
 
@@ -481,12 +493,28 @@ static float heuristic(u64 b) {
 }
 
 /* === N-Tuple V (when weights loaded) === */
+static int max_tile_log_of(u64 b) {
+    int m = 0;
+    for (int i = 0; i < 16; i++) {
+        int t = (int)get_tile(b, i);
+        if (t > m) m = t;
+    }
+    return m;
+}
+
 static float evaluate_ntuple(u64 b) {
+    /* Multistage dispatch: if late-stage weights are loaded, use them when
+     * the board's max tile is at least the threshold (8192). Otherwise use
+     * the early/single weights. */
+    const std::vector<float>* W = WEIGHTS;
+    if (g_multistage && max_tile_log_of(b) >= STAGE_THRESHOLD_LOG) {
+        W = WEIGHTS_LATE;
+    }
     float v = 0.0f;
     for (int iso = 0; iso < 8; iso++) {
         for (int f = 0; f < FEATURE_COUNT; f++) {
             u32 idx = pattern_index(b, ISO_POS[iso][f]);
-            v += WEIGHTS[f][idx];
+            v += W[f][idx];
         }
     }
     return v;
@@ -626,7 +654,11 @@ int solver_init(const char* network) {
     }
     g_initialised = true;
     g_weights_loaded = false;
-    for (int i = 0; i < FEATURE_COUNT; i++) WEIGHTS[i].clear();
+    g_multistage = false;
+    for (int i = 0; i < FEATURE_COUNT; i++) {
+        WEIGHTS[i].clear();
+        WEIGHTS_LATE[i].clear();
+    }
     return OK_;
 }
 
@@ -635,7 +667,13 @@ int solver_load_weights(const u8* data, size_t size) {
     if (!data || size == 0) return ERR_WEIGHT_FORMAT;
     int rc = try_load_weights(data, size);
     g_weights_loaded = (rc == OK_);
-    if (!g_weights_loaded) for (int i = 0; i < FEATURE_COUNT; i++) WEIGHTS[i].clear();
+    if (!g_weights_loaded) {
+        g_multistage = false;
+        for (int i = 0; i < FEATURE_COUNT; i++) {
+            WEIGHTS[i].clear();
+            WEIGHTS_LATE[i].clear();
+        }
+    }
     return rc;
 }
 
@@ -692,7 +730,11 @@ u64 solver_spawn_tile(u64 board, u32 seed) { return spawn_tile(board, seed); }
 void solver_dispose() {
     g_initialised = false;
     g_weights_loaded = false;
-    for (int i = 0; i < FEATURE_COUNT; i++) WEIGHTS[i].clear();
+    g_multistage = false;
+    for (int i = 0; i < FEATURE_COUNT; i++) {
+        WEIGHTS[i].clear();
+        WEIGHTS_LATE[i].clear();
+    }
 }
 
 } /* extern "C" */
