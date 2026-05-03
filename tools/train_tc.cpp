@@ -298,6 +298,16 @@ int main(int argc, char** argv) {
     }
     if (resume_path[0] && load_weights(resume_path)) {
         std::printf("loaded existing weights from %s\n", resume_path);
+        /* WARM START: priming the TC accumulators with the squared weight as
+         * a proxy for accumulated history; otherwise resumed updates use
+         * α=1.0 from scratch and overwrite well-converged regions. */
+        for (int i = 0; i < FEATURE_COUNT; i++) {
+            for (size_t k = 0; k < PATTERN_SIZE; k++) {
+                float w = WEIGHTS[i][k];
+                SUM_E[i][k] = w;
+                SUM_A[i][k] = std::fabs(w);
+            }
+        }
     } else if (resume_path[0]) {
         std::printf("WARNING: failed to load %s\n", resume_path);
     }
