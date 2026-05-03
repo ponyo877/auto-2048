@@ -1,11 +1,18 @@
-interface Props { playing: boolean; onToggle: () => void; }
+interface Props { playing: boolean; gameOver: boolean; onToggle: () => void; }
 
-export function PlayPauseButton({ playing, onToggle }: Props) {
+function pickLabel(playing: boolean, gameOver: boolean): string {
+  if (playing) return 'Pause';
+  if (gameOver) return 'Play Again';
+  return 'AI Play';
+}
+
+export function PlayPauseButton({ playing, gameOver, onToggle }: Props) {
+  const label = pickLabel(playing, gameOver);
   return (
     <button
       className={`pp-btn ${playing ? 'is-playing' : ''}`}
       onClick={onToggle}
-      aria-label={playing ? 'Pause' : 'Play'}
+      aria-label={label}
     >
       <span className="pp-glyph">
         {playing ? (
@@ -19,7 +26,7 @@ export function PlayPauseButton({ playing, onToggle }: Props) {
           </svg>
         )}
       </span>
-      <span className="pp-label">{playing ? 'Pause' : 'AI Play'}</span>
+      <span className="pp-label">{label}</span>
     </button>
   );
 }

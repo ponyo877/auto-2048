@@ -104,6 +104,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 4px rgba(107,212,181,0.25); animation: pulse 1.6s ease-in-out infinite; }
 .dot.idle { background: var(--ink-soft); box-shadow: 0 0 0 4px rgba(107,100,120,0.18); animation: none; }
+.dot.over { background: var(--pink); box-shadow: 0 0 0 4px rgba(255,107,157,0.25); animation: none; }
+.brand-sub { line-height: 1.4; }
+.brand-row .brand-sub { white-space: normal; max-width: 100%; }
 @keyframes pulse {
   0%, 100% { box-shadow: 0 0 0 4px rgba(107,212,181,0.25); }
   50%      { box-shadow: 0 0 0 8px rgba(107,212,181,0.05); }

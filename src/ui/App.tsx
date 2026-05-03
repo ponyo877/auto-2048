@@ -3,7 +3,6 @@ import { Board } from './Board';
 import { BgBubbles } from './BgBubbles';
 import { Confetti } from './Confetti';
 import { DirectionFlash, type FlashTrigger } from './DirectionFlash';
-import { GameOver } from './GameOver';
 import { StatCard } from './StatCard';
 import { PlayPauseButton } from './PlayPauseButton';
 import { IconButton } from './IconButton';
@@ -165,8 +164,18 @@ export function App() {
               <div className="brand-text">
                 <div className="brand-title">AI&nbsp;Play&nbsp;2048</div>
                 <div className="brand-sub">
-                  <span className={`dot ${playing ? '' : 'idle'}`}></span>
-                  {solverErr ? `Error: ${solverErr}` : !solver ? 'Loading solver…' : playing ? `AI Lv.${aiLevel} thinking…` : 'Ready'}
+                  <span className={`dot ${playing ? '' : gameOver ? 'over' : 'idle'}`}></span>
+                  {solverErr
+                    ? `Error: ${solverErr}`
+                    : !solver
+                    ? 'Loading solver…'
+                    : gameOver
+                    ? (won && !canMove(board)
+                        ? `🎉 You hit 2048! Final ${score.toLocaleString()}`
+                        : `💔 Game over — Final ${score.toLocaleString()}`)
+                    : playing
+                    ? `AI Lv.${aiLevel} thinking…`
+                    : 'Ready'}
                 </div>
               </div>
             </div>
@@ -182,7 +191,6 @@ export function App() {
             <div className={`ai-ring ${aiThinking ? 'on' : ''}`} aria-hidden></div>
             <Board board={board} shake={shake} onSwipe={handleSwipe} />
             <DirectionFlash trigger={moveDir} byAI={byAI} />
-            {gameOver && <GameOver score={score} won={won && !canMove(board)} onRestart={restart} />}
           </div>
 
           <div className="hint-row">
@@ -197,7 +205,7 @@ export function App() {
 
         <div className="panel">
           <div className="card">
-            <PlayPauseButton playing={playing} onToggle={togglePlay} />
+            <PlayPauseButton playing={playing} gameOver={gameOver} onToggle={togglePlay} />
             <div className="btn-row">
               <IconButton onClick={restart} label="Restart">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
