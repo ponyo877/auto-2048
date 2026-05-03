@@ -1,3 +1,28 @@
+LICENSE — AutoPlay 2048
+
+This file consolidates every license required to redistribute this
+project or any deployment built from it.
+
+  1. The MIT License under which the original source code in this
+     repository is released.
+  2. The MIT License of moporgic/TDL2048+ (Hung Guei, 2021), under
+     which we redistribute the pre-trained 4x6patt N-Tuple weight
+     file (`4x6patt.w` / `4x6patt.trained.w`). The upstream README
+     and makefile document this file as part of the TDL2048+ build
+     pipeline, so it is treated as a project artefact under the
+     upstream MIT terms.
+  3. The MIT License of gabrielecirulli/2048 (Gabriele Cirulli, 2014),
+     reproduced as courtesy attribution to the author of the original
+     game. No source code from `gabrielecirulli/2048` is included or
+     compiled in this repository.
+
+See `NOTICE.md` for the full provenance — what we use, what we
+redistribute, and where each upstream artefact came from.
+
+================================================================
+1. AutoPlay 2048 — original code in this repository
+================================================================
+
 MIT License
 
 Copyright (c) 2026 ponyo877
@@ -20,14 +45,61 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-----------------------------------------------------------------------
 
-This MIT License covers only the source code authored within this
-repository (TypeScript, C++, build scripts, configuration, and
-documentation). It does NOT cover:
+================================================================
+2. moporgic/TDL2048+ — the algorithm reference and the trained
+   N-Tuple weight file we redistribute
+================================================================
 
-  * The trained N-Tuple Network weight file (`4x6patt.w` / `4x6patt.trained.w`).
-    See NOTICE.md for the legal status of that file.
+Source: https://github.com/moporgic/TDL2048
 
-  * Any third-party project credited in NOTICE.md, which retains its
-    own original license.
+MIT License
+
+Copyright (c) 2021 Hung Guei
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+
+================================================================
+3. gabrielecirulli/2048 — original 2048 game (courtesy attribution)
+================================================================
+
+Source: https://github.com/gabrielecirulli/2048
+
+The MIT License (MIT)
+
+Copyright (c) 2014 Gabriele Cirulli
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
