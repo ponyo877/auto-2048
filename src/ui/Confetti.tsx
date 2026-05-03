@@ -18,11 +18,14 @@ const COLORS = ['#FF6B9D', '#FFD166', '#06D6A0', '#118AB2', '#A06CD5', '#FF9770'
 function makePiece(trigger: number, i: number): Piece {
   return {
     id: `${trigger}:${i}`,
-    x: 50 + (Math.random() - 0.5) * 30,
-    angle: (Math.random() - 0.5) * 140,
-    dist: 40 + Math.random() * 60,
-    delay: Math.random() * 100,
-    dur: 1400 + Math.random() * 900,
+    /* full-width rain across the viewport */
+    x: Math.random() * 100,
+    /* mostly straight-down with a small horizontal drift */
+    angle: (Math.random() - 0.5) * 40,
+    /* fall past the bottom of the viewport */
+    dist: 110 + Math.random() * 30,
+    delay: Math.random() * 600,
+    dur: 1800 + Math.random() * 1200,
     rot: (Math.random() - 0.5) * 720,
     size: 8 + Math.random() * 8,
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
@@ -45,7 +48,7 @@ function pieceStyle(p: Piece): PieceStyle {
     animationDelay: `${p.delay}ms`,
     animationDuration: `${p.dur}ms`,
     '--ang': `${p.angle}deg`,
-    '--dist': `${p.dist}vh`,
+    '--dist': String(p.dist),
     '--rot': `${p.rot}deg`,
   };
 }
@@ -56,7 +59,7 @@ export function Confetti({ trigger }: { trigger: number }) {
     if (!trigger) return;
     const arr = Array.from({ length: 80 }, (_, i) => makePiece(trigger, i));
     setPieces(arr);
-    const t = setTimeout(() => setPieces([]), 2600);
+    const t = setTimeout(() => setPieces([]), 3600);
     return () => clearTimeout(t);
   }, [trigger]);
   if (!pieces.length) return null;
