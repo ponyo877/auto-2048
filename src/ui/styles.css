@@ -181,8 +181,13 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
   border-radius: 22px;
   display: inline-block;
   /* Belt-and-suspenders: even if the JS measure() lags one frame the
-   * frame visually clips to its parent rather than overflowing. */
+   * frame visually clips to its parent rather than overflowing. The
+   * `overflow: hidden` also stops a one-frame-stale tile transform
+   * (initial cell=90 before useDims runs) from inflating ancestor
+   * scrollWidth past the viewport. box-shadow paints outside, so the
+   * 3D-style frame depth is unaffected. */
   max-width: 100%;
+  overflow: hidden;
   box-shadow:
     inset 0 -6px 0 rgba(0,0,0,0.06),
     0 8px 0 #E5C0A6,
@@ -321,10 +326,41 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
   50%      { filter: drop-shadow(0 0 18px oklch(0.55 0.35 350 / 0.85)) hue-rotate(15deg); }
 }
 
-/* Reduced motion: keep colours, drop the active animation. */
+/* Reduced motion: keep colours, drop or de-fang the active animations
+ * across the whole app. Anything that loops (bubbles, halo, glyph),
+ * shakes, or flickers becomes static; one-shot transitions (spawn /
+ * merge / direction flash) collapse to near-instant. */
 @media (prefers-reduced-motion: reduce) {
-  .tile.tile-ominous { animation: none; }
-  .tile.tile-evil    { animation: evil-rotate 18s linear infinite; }
+  .bg-bubble                                { animation: none; }
+  .dot                                      { animation: none; }
+  .ai-ring                                  { animation: none; }
+  .confetti                                 { animation: none; opacity: 0; }
+  .shake                                    { animation: none; }
+  .pp-btn.is-playing .pp-glyph svg rect     { animation: none; }
+  .tile.tile-ominous                        { animation: none; }
+  .tile.tile-evil                           { animation: evil-rotate 18s linear infinite; }
+  .tile.tile-spawn .tile-text,
+  .tile.tile-merge .tile-text               { animation-duration: 0.01ms; }
+  .dir-arrow                                { animation-duration: 0.01ms; }
+}
+
+/* Touch devices: drop the decorative bubble layer. The 6× position:fixed
+ * blurred discs with running keyframes are a frame-budget tax on mid-
+ * range Android GPUs and add nothing the rest of the UI doesn't already
+ * carry. */
+@media (hover: none) and (pointer: coarse) {
+  .bg-bubbles { display: none; }
+}
+
+/* Visible focus indicator for keyboard users, since the heavily styled
+ * buttons swallow the user-agent default outline. */
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--pink);
+  outline-offset: 3px;
+  border-radius: inherit;
 }
 
 /* Screen shake */

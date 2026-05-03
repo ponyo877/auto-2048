@@ -208,7 +208,7 @@ export function App() {
   }, [playing, doMove]);
 
   return (
-    <div className="app">
+    <main className="app">
       <BgBubbles />
       <Confetti trigger={confetti} />
       <div className="shell">
@@ -217,7 +217,7 @@ export function App() {
             <div className="brand">
               <div className="brand-logo">2³</div>
               <div className="brand-text">
-                <div className="brand-title">AutoPlay&nbsp;2048</div>
+                <h1 className="brand-title">AutoPlay&nbsp;2048</h1>
                 <div className="brand-sub">
                   <span className={`dot ${dotClass(playing, gameOver)}`}></span>
                   {statusContent({
@@ -317,6 +317,6 @@ export function App() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
