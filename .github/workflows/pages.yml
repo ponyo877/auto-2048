@@ -39,6 +39,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Fetch trained weights from Releases
+        run: |
+          mkdir -p public/weights
+          curl -L --fail --retry 3 \
+            -o public/weights/4x6patt.trained.w.gz \
+            https://github.com/ponyo877/autoplay-2048/releases/download/weights-v1/4x6patt.trained.w.gz
+          ls -lh public/weights/4x6patt.trained.w.gz
+
       - name: Build site
         run: npm run build
 

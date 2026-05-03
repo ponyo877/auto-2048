@@ -104,7 +104,7 @@ export function App() {
     createSolver({
       network: '4x6patt',
       wasmUrl: '/solver.js',
-      weightsUrl: 'https://github.com/ponyo877/autoplay-2048/releases/latest/download/4x6patt.trained.w.gz',
+      weightsUrl: '/weights/4x6patt.trained.w.gz',
     })
       .then((s) => { if (!disposed) setSolver(s); })
       .catch((e) => setSolverErr(String(e)));
