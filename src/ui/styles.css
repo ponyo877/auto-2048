@@ -337,6 +337,7 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
   .confetti                                 { animation: none; opacity: 0; }
   .shake                                    { animation: none; }
   .pp-btn.is-playing .pp-glyph svg rect     { animation: none; }
+  .pp-btn.is-loading .pp-glyph svg          { animation: none; }
   .tile.tile-ominous                        { animation: none; }
   .tile.tile-evil                           { animation: evil-rotate 18s linear infinite; }
   .tile.tile-spawn .tile-text,
@@ -426,6 +427,22 @@ input:focus-visible {
   background: linear-gradient(180deg, var(--mint), #45BC97);
   box-shadow: 0 6px 0 #379B7B, 0 14px 28px -10px rgba(69,188,151,0.55);
 }
+.pp-btn.is-loading {
+  /* Muted neutral tone makes "loading" obvious without competing with the
+   * vivid pink/mint state colors. */
+  background: linear-gradient(180deg, #C8B6BE, #B59CA9);
+  box-shadow: 0 6px 0 #978391, 0 12px 22px -10px rgba(151,131,145,0.45);
+  cursor: progress;
+}
+.pp-btn:disabled,
+.pp-btn[aria-disabled="true"] {
+  cursor: progress;
+}
+.pp-btn.is-loading .pp-glyph svg {
+  animation: pp-spin 1s linear infinite;
+  transform-origin: 50% 50%;
+}
+@keyframes pp-spin { to { transform: rotate(360deg); } }
 @media (hover: hover) {
   .pp-btn.is-playing:hover { box-shadow: 0 8px 0 #379B7B, 0 18px 32px -10px rgba(69,188,151,0.6); }
 }

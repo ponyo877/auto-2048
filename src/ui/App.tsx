@@ -186,9 +186,10 @@ export function App() {
   }, []);
 
   const togglePlay = useCallback(() => {
+    if (!solver) return;
     if (gameOver) { restart(); setTimeout(() => setPlaying(true), 50); return; }
     setPlaying((p) => !p);
-  }, [gameOver, restart]);
+  }, [solver, gameOver, restart]);
 
   useKeyboard({
     playing, gameOver,
@@ -255,7 +256,7 @@ export function App() {
 
         <div className="panel">
           <div className="card">
-            <PlayPauseButton playing={playing} gameOver={gameOver} onToggle={togglePlay} />
+            <PlayPauseButton playing={playing} gameOver={gameOver} disabled={!solver} onToggle={togglePlay} />
             <div className="btn-row">
               <IconButton onClick={restart} label="Restart">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
