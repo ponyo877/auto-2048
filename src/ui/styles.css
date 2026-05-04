@@ -628,6 +628,37 @@ input:focus-visible {
   .hint.hint-key { display: none; }
 }
 
+/* Quiet GitHub / X icon row at the foot of the Credits card. */
+.credits-links {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.credits-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  transition: color 160ms ease, background 160ms ease, transform 120ms ease;
+  touch-action: manipulation;
+}
+@media (hover: hover) {
+  .credits-links a:hover {
+    color: var(--ink);
+    background: #FFE6CF;
+    transform: translateY(-1px);
+  }
+}
+.credits-links a:active { transform: translateY(1px); }
+@media (hover: none) and (pointer: coarse) {
+  .credits-links a { width: 44px; height: 44px; }
+}
+
 /* Save-Data consent button shown in place of "Loading…" status when the
  * client signals saveData. Tapping it kicks off the 167 MB download. */
 .load-consent-btn {
