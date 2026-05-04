@@ -11,7 +11,6 @@ interface Args {
   aiLevel: number;
   boardRef: React.MutableRefObject<Grid>;
   doMove: (dir: Direction, fromAI: boolean) => boolean;
-  onAiThinkingChange: (v: boolean) => void;
   onPlayingChange: (v: boolean) => void;
   onGameOver: () => void;
 }
@@ -34,9 +33,8 @@ function scheduleNext(delayMs: number, fn: () => void): () => void {
 export function useAutoPlay(a: Args) {
   useEffect(() => {
     const { solver, playing, gameOver } = a;
-    if (!playing || !solver) { a.onAiThinkingChange(false); return; }
+    if (!playing || !solver) return;
     if (gameOver) { a.onPlayingChange(false); return; }
-    a.onAiThinkingChange(true);
 
     let cancelled = false;
     let cancelTimer: (() => void) | undefined;
@@ -60,7 +58,6 @@ export function useAutoPlay(a: Args) {
     cancelTimer = scheduleNext(Math.min(a.speedMs, 200), tick);
     return () => {
       cancelled = true;
-      a.onAiThinkingChange(false);
       if (cancelTimer) cancelTimer();
     };
     // eslint-disable-next-line

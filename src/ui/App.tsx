@@ -19,7 +19,6 @@ import type { Solver } from '@/solver';
 const INITIAL_SPEED_MS = 250;
 const INITIAL_AI_LEVEL = 3;
 const BIG_MERGE = 256;
-const AI_THINK_FLASH_MS = 220;
 const WEIGHTS_URL = '/weights/4x6patt.trained.w.gz';
 function formatMB(bytes: number): string {
   return `${(bytes / 1048576).toFixed(1)} MB`;
@@ -141,7 +140,6 @@ export function App() {
   const [confetti, setConfetti] = useState(0);
   const [won, setWon] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const [aiThinking, setAiThinking] = useState(false);
   const [moveDir, setMoveDir] = useState<FlashTrigger | null>(null);
   const [byAI, setByAI] = useState(false);
   const { solver, solverErr, progress, browserError, consented, consent } =
@@ -174,8 +172,6 @@ export function App() {
     if (!solver || gameOver) return;
     const action = await solver.step(gridToBigint(boardRef.current), aiLevel);
     if (action < 0) { setGameOver(true); return; }
-    setAiThinking(true);
-    setTimeout(() => setAiThinking(false), AI_THINK_FLASH_MS);
     doMove(action as Direction, true);
   }, [solver, gameOver, aiLevel, doMove]);
 
@@ -199,7 +195,6 @@ export function App() {
   useAutoPlay({
     solver, playing, gameOver, speedMs, aiLevel,
     boardRef, doMove,
-    onAiThinkingChange: setAiThinking,
     onPlayingChange: setPlaying,
     onGameOver: () => setGameOver(true),
   });
@@ -238,7 +233,6 @@ export function App() {
           </div>
 
           <div style={{ position: 'relative' }}>
-            <div className={`ai-ring ${aiThinking ? 'on' : ''}`} aria-hidden></div>
             <Board board={board} shake={shake} onSwipe={handleSwipe} />
             <DirectionFlash trigger={moveDir} byAI={byAI} />
           </div>

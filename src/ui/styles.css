@@ -333,7 +333,6 @@ button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
 @media (prefers-reduced-motion: reduce) {
   .bg-bubble                                { animation: none; }
   .dot                                      { animation: none; }
-  .ai-ring                                  { animation: none; }
   .confetti                                 { animation: none; opacity: 0; }
   .shake                                    { animation: none; }
   .pp-btn.is-playing .pp-glyph svg rect     { animation: none; }
@@ -769,16 +768,3 @@ input:focus-visible {
   }
 }
 
-/* AI thinking ring around board */
-.ai-ring {
-  position: absolute; inset: -6px;
-  border-radius: 28px;
-  pointer-events: none;
-  background: conic-gradient(from 0deg, transparent 0deg, transparent 270deg, rgba(255,107,157,0.0) 270deg, rgba(255,107,157,0.6) 320deg, rgba(255,107,157,0.0) 360deg);
-  opacity: 0;
-  transition: opacity 220ms ease;
-  animation: ring-rot 2.6s linear infinite;
-  filter: blur(0.5px);
-}
-.ai-ring.on { opacity: 0.85; }
-@keyframes ring-rot { to { transform: rotate(360deg); } }
